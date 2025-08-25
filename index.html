@@ -984,16 +984,15 @@
         // Supabase Configuration
         const supabaseUrl = 'https://kvkhojlmqwfsdcuusyqp.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA';
-        
-        let supabase;
-        try {
-            supabase = supabase.createClient(supabaseUrl, supabaseKey);
-            console.log('Supabase client initialized successfully');
-        } catch (error) {
-            console.error('Error initializing Supabase client:', error);
-            alert('Failed to initialize Supabase. Please check the console for details.');
-        }
 
+        let supabase;
+try {
+    supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    console.log('Supabase client initialized successfully');
+} catch (error) {
+    console.error('Error initializing Supabase client:', error);
+    alert('Failed to initialize Supabase. Please check the console for details.');
+}
         class ManagementSystem {
             constructor() {
                 this.navLinks = document.querySelectorAll('nav ul li a');
@@ -1909,6 +1908,7 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 </body>
 </html>
+
 
 
 
