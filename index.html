@@ -8,10 +8,8 @@
     <title>Dona Accessories - Management System</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --warm-beige: #F5F5F5;
@@ -979,20 +977,10 @@
     </div>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+        // Supabase Configuration
+        const supabaseUrl = 'https://kvkhojlmqwfsdcuusyqp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA';
+        const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
         class ManagementSystem {
             constructor() {
@@ -1019,6 +1007,7 @@
                 this.currentOrderId = null;
                 this.isEditing = false;
                 this.uploadedImage = null;
+                this.products = [];
 
                 this.init();
             }
@@ -1196,8 +1185,8 @@
                 document.getElementById('productCategory').value = product.category;
                 document.getElementById('productQuantity').value = product.quantity;
                 document.getElementById('productDeposit').value = product.deposit;
-                document.getElementById('productImageUrl').value = product.image;
-                document.getElementById('productNotes').value = product.notes;
+                document.getElementById('productImageUrl').value = product.image || '';
+                document.getElementById('productNotes').value = product.notes || '';
                 document.getElementById('customDetails').value = product.customDetails || '';
 
                 if (product.image) {
@@ -1435,9 +1424,15 @@
                     let imageUrl = formData.get('productImageUrl') || '';
 
                     if (this.uploadedImage) {
-                        const storageRef = storage.ref(`products/${Date.now()}_${this.uploadedImage.name}`);
-                        await storageRef.put(this.uploadedImage);
-                        imageUrl = await storageRef.getDownloadURL();
+                        const fileName = `products/${Date.now()}_${this.uploadedImage.name}`;
+                        const { data, error } = await supabase.storage
+                            .from('product-images')
+                            .upload(fileName, this.uploadedImage, { upsert: true });
+                        if (error) throw error;
+                        const { publicUrl } = supabase.storage
+                            .from('product-images')
+                            .getPublicUrl(fileName).data;
+                        imageUrl = publicUrl;
                     }
 
                     const productData = {
@@ -1448,14 +1443,21 @@
                         quantity: formData.get('productQuantity'),
                         deposit: parseFloat(formData.get('productDeposit')),
                         image: imageUrl || 'https://images.unsplash.com/photo-1606760227091-3dd7e8e6676e?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=250&q=80',
-                        notes: formData.get('productNotes'),
-                        customDetails: formData.get('customDetails') || ''
+                        notes: formData.get('productNotes') || null,
+                        customDetails: formData.get('customDetails') || null
                     };
 
                     if (this.isEditing) {
-                        await db.collection('products').doc(this.currentProductId).update(productData);
+                        const { error } = await supabase
+                            .from('products')
+                            .update(productData)
+                            .eq('id', this.currentProductId);
+                        if (error) throw error;
                     } else {
-                        await db.collection('products').add(productData);
+                        const { error } = await supabase
+                            .from('products')
+                            .insert([productData]);
+                        if (error) throw error;
                     }
 
                     await this.renderProducts();
@@ -1482,24 +1484,30 @@
                 try {
                     const formData = new FormData(this.orderForm);
                     const selectedProducts = Array.from(document.getElementById('orderProducts').selectedOptions).map(opt => opt.value);
-                    const customDetails = formData.get('customOrderDetails') || '';
+                    const customDetails = formData.get('customOrderDetails') || null;
 
                     const orderData = {
                         customer: formData.get('orderCustomer'),
                         phone: formData.get('orderPhone'),
-                        instagram: formData.get('orderInstagram') || '',
+                        instagram: formData.get('orderInstagram') || null,
                         products: selectedProducts,
                         customDetails: customDetails,
                         deposit: parseFloat(formData.get('orderDeposit')),
                         status: formData.get('orderStatus'),
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        createdAt: new Date().toISOString()
                     };
 
                     if (this.isEditing) {
-                        await db.collection('orders').doc(this.currentOrderId).update(orderData);
+                        const { error } = await supabase
+                            .from('orders')
+                            .update(orderData)
+                            .eq('id', this.currentOrderId);
+                        if (error) throw error;
                     } else {
-                        const docRef = await db.collection('orders').add(orderData);
-                        this.currentOrderId = docRef.id;
+                        const { error } = await supabase
+                            .from('orders')
+                            .insert([orderData]);
+                        if (error) throw error;
                     }
 
                     await this.renderOrders();
@@ -1521,8 +1529,11 @@
                 this.products = [];
 
                 try {
-                    let querySnapshot = await db.collection('products').get();
-                    this.products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    let { data, error } = await supabase
+                        .from('products')
+                        .select('*');
+                    if (error) throw error;
+                    this.products = data;
 
                     let filteredProducts = category === 'all' 
                         ? this.products 
@@ -1593,8 +1604,12 @@
                 this.orders = [];
 
                 try {
-                    let querySnapshot = await db.collection('orders').orderBy('createdAt', 'desc').get();
-                    this.orders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    let { data, error } = await supabase
+                        .from('orders')
+                        .select('*')
+                        .order('createdAt', { ascending: false });
+                    if (error) throw error;
+                    this.orders = data;
 
                     this.orders.forEach((order, index) => {
                         const card = document.createElement('div');
@@ -1663,9 +1678,12 @@
 
                 select.innerHTML = '';
                 try {
-                    const querySnapshot = await db.collection('products').get();
-                    this.products = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    this.products.forEach(product => {
+                    const { data, error } = await supabase
+                        .from('products')
+                        .select('name');
+                    if (error) throw error;
+                    this.products = data;
+                    data.forEach(product => {
                         const option = document.createElement('option');
                         option.value = product.name;
                         option.textContent = product.name;
@@ -1679,16 +1697,23 @@
 
             async updateDashboardStats() {
                 try {
-                    const productsSnapshot = await db.collection('products').get();
-                    const ordersSnapshot = await db.collection('orders').get();
+                    const { data: productsData, error: productsError } = await supabase
+                        .from('products')
+                        .select('*');
+                    if (productsError) throw productsError;
+
+                    const { data: ordersData, error: ordersError } = await supabase
+                        .from('orders')
+                        .select('*');
+                    if (ordersError) throw ordersError;
 
                     const totalProducts = document.querySelector('#dashboard-page .dashboard-cards .card:nth-child(1) .card-value');
                     const totalOrders = document.querySelector('#dashboard-page .dashboard-cards .card:nth-child(2) .card-value');
                     const totalRevenue = document.querySelector('#dashboard-page .dashboard-cards .card:nth-child(3) .card-value');
                     const pendingOrders = document.querySelector('#dashboard-page .dashboard-cards .card:nth-child(4) .card-value');
 
-                    const products = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    const products = productsData;
+                    const orders = ordersData;
 
                     if (totalProducts) totalProducts.textContent = products.length;
                     if (totalOrders) totalOrders.textContent = orders.length;
@@ -1725,7 +1750,11 @@
             async deleteProduct(productId) {
                 if (confirm('Are you sure you want to delete this product?')) {
                     try {
-                        await db.collection('products').doc(productId).delete();
+                        const { error } = await supabase
+                            .from('products')
+                            .delete()
+                            .eq('id', productId);
+                        if (error) throw error;
                         await this.renderProducts();
                         await this.populateOrderProductsSelect();
                         await this.updateDashboardStats();
@@ -1740,7 +1769,11 @@
             async deleteOrder(orderId) {
                 if (confirm('Are you sure you want to delete this order?')) {
                     try {
-                        await db.collection('orders').doc(orderId).delete();
+                        const { error } = await supabase
+                            .from('orders')
+                            .delete()
+                            .eq('id', orderId);
+                        if (error) throw error;
                         await this.renderOrders();
                         await this.updateDashboardStats();
                         alert('Order deleted successfully!');
@@ -1772,3 +1805,4 @@
     </script>
 </body>
 </html>
+
