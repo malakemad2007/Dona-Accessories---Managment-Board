@@ -1129,6 +1129,75 @@ class ManagementSystem {
   }
 }
 
+// Modal elements
+const productModal = document.getElementById("productModal");
+const orderModal = document.getElementById("orderModal");
+
+// Open modals
+document.getElementById("add-product-btn").addEventListener("click", () => {
+  productModal.style.display = "block";
+});
+
+document.getElementById("add-order-btn").addEventListener("click", () => {
+  orderModal.style.display = "block";
+});
+
+// Close modals
+document.querySelectorAll(".close-modal").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    btn.closest(".modal").style.display = "none";
+  });
+});
+
+// Submit Product Form
+document.getElementById("productForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const productData = {
+    name: document.getElementById("productName").value,
+    price: parseFloat(document.getElementById("productPrice").value),
+    material: document.getElementById("productMaterial").value,
+    category: document.getElementById("productCategory").value,
+    quantity: document.getElementById("productQuantity").value,
+    deposit: parseFloat(document.getElementById("productDeposit").value),
+    notes: document.getElementById("productNotes").value,
+  };
+
+  const { error } = await supabase.from("products").insert([productData]);
+
+  if (error) {
+    console.error("❌ Error adding product:", error);
+    alert("Failed to add product");
+  } else {
+    alert("✅ Product added successfully!");
+    productModal.style.display = "none";
+  }
+});
+
+// Submit Order Form
+document.getElementById("orderForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const orderData = {
+    customer_name: document.getElementById("orderCustomer").value,
+    phone: document.getElementById("orderPhone").value,
+    instagram: document.getElementById("orderInstagram").value,
+    deposit: parseFloat(document.getElementById("orderDeposit").value),
+    status: document.getElementById("orderStatus").value,
+  };
+
+  const { error } = await supabase.from("orders").insert([orderData]);
+
+  if (error) {
+    console.error("❌ Error adding order:", error);
+    alert("Failed to add order");
+  } else {
+    alert("✅ Order added successfully!");
+    orderModal.style.display = "none";
+  }
+});
+
+
 // --------------------------------------------------------------------------------
 // Boot the system
 // --------------------------------------------------------------------------------
@@ -1138,6 +1207,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
 
 
