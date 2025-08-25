@@ -990,9 +990,6 @@ console.log("✅ Supabase client ready:", supabase);
 // --------------------------------------------------------------------------------
 // Management System Class
 // --------------------------------------------------------------------------------
-
-class ManagementSystem {
-  constructor() {
 class ManagementSystem {
   constructor() {
     // ربط العناصر الموجودة في الـ HTML
@@ -1007,8 +1004,8 @@ class ManagementSystem {
     };
 
     // عناصر الفورم
-    this.productForm = document.getElementById("product-form");
-    this.orderForm = document.getElementById("order-form");
+    this.productForm = document.getElementById("productForm");
+    this.orderForm = document.getElementById("orderForm");
   }
 
   // جلب المنتجات
@@ -1145,6 +1142,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const system = new ManagementSystem();
   system.init();
 });
+
 
 
   // --------------------------------------------------------------------------------
@@ -1285,6 +1283,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
 
 
