@@ -976,23 +976,29 @@
         </div>
     </div>
 <script>
-    // Check if Supabase is loaded
-    if (typeof supabase === 'undefined') {
-        console.error('Supabase SDK failed to load. Please check the CDN link or network connection.');
-        alert('Failed to load Supabase SDK. Please check your internet connection or refresh the page.');
-    } else {
-        // Supabase Configuration
-        const supabaseUrl = 'https://kvkhojlmqwfsdcuusyqp.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA';
+// Check if Supabase is loaded
+if (typeof window.supabase === 'undefined') {
+    console.error('Supabase SDK failed to load. Please check the CDN link or network connection.');
+    alert('Failed to load Supabase SDK. Please check your internet connection or refresh the page.');
+} else {
+    // Supabase Configuration
+    const supabaseUrl = 'https://kvkhojlmqwfsdcuusyqp.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
-        let supabase;
-try {
-    supabase = supabase.createClient(supabaseUrl, supabaseKey);
-    console.log('Supabase client initialized successfully');
-} catch (error) {
-    console.error('Error initializing Supabase client:', error);
-    alert('Failed to initialize Supabase. Please check the console for details.');
+    try {
+        // خد createClient من window.supabase
+        const { createClient } = window.supabase;
+
+        // أنشيء client جديد
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+        console.log('Supabase client initialized successfully', supabaseClient);
+    } catch (error) {
+        console.error('Error initializing Supabase client:', error);
+        alert('Failed to initialize Supabase. Please check the console for details.');
+    }
 }
+
         class ManagementSystem {
             constructor() {
                 this.navLinks = document.querySelectorAll('nav ul li a');
@@ -1908,6 +1914,7 @@ try {
 
 </body>
 </html>
+
 
 
 
