@@ -1312,9 +1312,82 @@ document.addEventListener("DOMContentLoaded", () => {
   const system = new ManagementSystem();
   system.init();
 });
+
+setupNavigation() {
+  const tabs = document.querySelectorAll(".nav-btn");
+  const sections = document.querySelectorAll(".section");
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      // اخفي كل الـ sections
+      sections.forEach((s) => (s.style.display = "none"));
+
+      // شيل active من كل الأزرار
+      tabs.forEach((t) => t.classList.remove("active"));
+
+      // فعّل الزرار ده
+      tab.classList.add("active");
+
+      // هات الـ section المناسب
+      const target = tab.getAttribute("data-target");
+      document.getElementById(target).style.display = "block";
+    });
+  });
+}
+setupFilters() {
+  const filters = document.querySelectorAll(".filter-btn");
+
+  filters.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const category = btn.getAttribute("data-category");
+
+      document.querySelectorAll(".product-card").forEach((card) => {
+        if (category === "all" || card.querySelector(".detail-value").innerText === category) {
+          card.style.display = "block";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    });
+  });
+}
+setupActions() {
+  // Edit
+  document.addEventListener("click", async (e) => {
+    if (e.target.closest(".edit-btn")) {
+      const id = e.target.closest(".edit-btn").dataset.id;
+      alert("هنا نكتب كود تعديل المنتج ID: " + id);
+      // هنا تفتحي المودال وتعملي update في Supabase
+    }
+  });
+
+  // Delete
+  document.addEventListener("click", async (e) => {
+    if (e.target.closest(".action-btn")) {
+      const id = e.target.closest(".action-btn").dataset.id;
+      if (confirm("متأكدة عايزة تمسحي المنتج؟")) {
+        const { error } = await supabase.from("products").delete().eq("id", id);
+        if (error) console.error(error);
+        else this.renderProducts();
+      }
+    }
+  });
+}
+async init() {
+  await this.renderProducts();
+  await this.renderOrders();
+  await this.updateDashboardStats();
+  this.bindUI();
+  this.setupRealtime();
+  this.setupNavigation(); // ⬅️ جديد
+  this.setupFilters();    // ⬅️ جديد
+  this.setupActions();    // ⬅️ جديد
+}
+
 </script>
 </body>
 </html>
+
 
 
 
