@@ -993,9 +993,12 @@ console.log("✅ Supabase client ready:", supabase);
 
 class ManagementSystem {
   constructor() {
-    this.productsContainer = document.getElementById("products-container");
-    this.ordersContainer = document.getElementById("orders-container");
-    this.dashboardStats = document.getElementById("dashboard-stats");
+this.productsContainer = document.getElementById("products-grid");
+this.ordersContainer = document.getElementById("orders-grid");
+
+// بالنسبة للداشبورد هنسيبها فاضية مؤقتًا ونظبطها في Step 2
+this.dashboardStats = null;
+
 
     this.init();
   }
@@ -1207,6 +1210,7 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
 
 
