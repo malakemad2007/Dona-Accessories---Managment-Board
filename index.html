@@ -1025,7 +1025,6 @@
                 div.className = "product-card";
                 div.style.setProperty('--index', index);
                 div.innerHTML = `
-                  <div class="product-image" style="background-image: url(${product.imageUrl || 'https://via.placeholder.com/300'})"></div>
                   <div class="product-info">
                     <h3 class="product-name">${product.name || "Unnamed Product"}</h3>
                     <p class="product-price">EGP ${product.price || 0}</p>
@@ -1047,8 +1046,6 @@
                         <span class="detail-value">EGP ${product.deposit || 0}</span>
                       </div>
                     </div>
-                    ${product.customDetails ? `<div class="custom-details">${product.customDetails}</div>` : ""}
-                    ${product.notes ? `<div class="custom-details">${product.notes}</div>` : ""}
                     <div class="actions-container">
                       <button class="edit-btn" data-id="${product.id}">
                         <i class="fas fa-edit"></i> Edit
@@ -1161,19 +1158,16 @@
 
             // تحويل البيانات لتتطابق مع أسماء الأعمدة في جدول products
             const product = {
-              name: productData.productName,
+              name: productData.productName || null,
               price: productData.productPrice ? parseFloat(productData.productPrice) : null,
               material: productData.productMaterial || null,
               category: productData.productCategory || null,
               quantity: productData.productQuantity || null,
-              deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null,
-              customDetails: productData.customDetails || null,
-              imageUrl: productData.productImageUrl || null,
-              notes: productData.productNotes || null
+              deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null
             };
 
             // طباعة البيانات للتأكد
-            console.log("البيانات اللي بتتبعت:", product);
+            console.log("البيانات اللي بتتبعت للمنتج:", product);
 
             // فحص الحقول المطلوبة
             if (!product.name || !product.price || !product.material || !product.category || !product.quantity || !product.deposit) {
@@ -1300,6 +1294,7 @@
     </script>
 </body>
 </html>
+
 
 
 
