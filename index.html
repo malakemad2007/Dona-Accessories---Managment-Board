@@ -975,8 +975,21 @@
         </div>
     </div>
     <script>
+// ✅ Supabase Configuration
+const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
+
+const { createClient } = window.supabase;
+const supabase = createClient(supabaseUrl, supabaseKey);
+console.log("✅ Supabase client ready:", supabase);
+
+// --------------------------------------------------------------------------------
+// Management System Class
+// --------------------------------------------------------------------------------
 class ManagementSystem {
   constructor() {
+    // عناصر الـ UI
     this.productsContainer = document.getElementById("products-grid");
     this.ordersContainer = document.getElementById("orders-grid");
     this.dashboardStats = {
@@ -993,32 +1006,320 @@ class ManagementSystem {
     this.addOrderBtn = document.getElementById("add-order-btn");
   }
 
-  // ✅ جوا الكلاس
+  // جلب المنتجات
+  async renderProducts() {
+    try {
+      const { data, error } = await supabase.from("products").select("*");
+      if (error) throw error;
+
+      if (!this.productsContainer) return;
+      this.productsContainer.innerHTML = "";
+
+      data.forEach((product, index) => {
+        const div = document.createElement("div");
+        div.className = "product-card";
+        div.style.setProperty('--index', index);
+        div.innerHTML = `
+          <div class="product-image" style="background-image: url(${product.image_url || 'https://via.placeholder.com/300'})"></div>
+          <div class="product-info">
+            <h3 class="product-name">${product.name || "Unnamed Product"}</h3>
+            <p class="product-price">EGP ${product.price || 0}</p>
+            <div class="product-details">
+              <div class="detail-item">
+                <span class="detail-label">Category:</span>
+                <span class="detail-value">${product.category || "N/A"}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Material:</span>
+                <span class="detail-value">${product.material || "N/A"}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Quantity:</span>
+                <span class="detail-value">${product.quantity || "N/A"}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Deposit:</span>
+                <span class="detail-value">EGP ${product.deposit || 0}</span>
+              </div>
+            </div>
+            <div class="actions-container">
+              <button class="edit-btn" data-id="${product.id}">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="action-btn" data-id="${product.id}">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+        `;
+        this.productsContainer.appendChild(div);
+      });
+    } catch (err) {
+      console.error("❌ Error fetching products:", err);
+    }
+  }
+
+  // جلب الطلبات
+  async renderOrders() {
+    try {
+      const { data, error } = await supabase.from("orders").select("*");
+      if (error) throw error;
+
+      if (!this.ordersContainer) return;
+      this.ordersContainer.innerHTML = "";
+
+      data.forEach((order) => {
+        const div = document.createElement("div");
+        div.className = "order-card";
+        div.innerHTML = `
+          <div class="order-info">
+            <h3 class="order-id">Order #${order.id}</h3>
+            <div class="order-details">
+              <div class="order-item">
+                <span class="order-label">Customer:</span>
+                <span class="order-value">${order.customer || "N/A"}</span>
+              </div>
+              <div class="order-item">
+                <span class="order-label">Phone:</span>
+                <span class="order-value">${order.phone || "N/A"}</span>
+              </div>
+              <div class="order-item">
+                <span class="order-label">Status:</span>
+                <span class="order-value status-${order.status || "deposit"}">${order.status || "N/A"}</span>
+              </div>
+              <div class="order-item">
+                <span class="order-label">Deposit:</span>
+                <span class="order-value">EGP ${order.deposit || 0}</span>
+              </div>
+            </div>
+            <div class="actions-container">
+              <button class="edit-btn" data-id="${order.id}">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="action-btn" data-id="${order.id}">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+            </div>
+          </div>
+        `;
+        this.ordersContainer.appendChild(div);
+      });
+    } catch (err) {
+      console.error("❌ Error fetching orders:", err);
+    }
+  }
+
+  // تحديث Dashboard
+  async updateDashboardStats() {
+    try {
+      const { count: productsCount } = await supabase
+        .from("products")
+        .select("*", { count: "exact", head: true });
+
+      const { count: ordersCount } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true });
+
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("deposit")
+        .eq("status", "delivered");
+
+      const totalRevenue = orders.reduce((sum, order) => sum + (order.deposit || 0), 0);
+
+      if (this.dashboardStats.totalProducts)
+        this.dashboardStats.totalProducts.innerText = productsCount ?? 0;
+
+      if (this.dashboardStats.totalOrders)
+        this.dashboardStats.totalOrders.innerText = ordersCount ?? 0;
+
+      if (this.dashboardStats.totalRevenue)
+        this.dashboardStats.totalRevenue.innerText = `EGP ${totalRevenue.toFixed(2)}`;
+
+      if (this.dashboardStats.pendingOrders)
+        this.dashboardStats.pendingOrders.innerText = (await supabase
+          .from("orders")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "progress")).count ?? 0;
+    } catch (err) {
+      console.error("❌ Error updating dashboard:", err);
+    }
+  }
+
+  // إضافة منتج مع رفع الصورة
+  async addProduct(e) {
+    e.preventDefault();
+    const formData = new FormData(this.productForm);
+    const productData = Object.fromEntries(formData.entries());
+
+    // تحويل البيانات لتتطابق مع أسماء الأعمدة في جدول products
+    const product = {
+      name: productData.productName || null,
+      price: productData.productPrice ? parseFloat(productData.productPrice) : null,
+      material: productData.productMaterial || null,
+      category: productData.productCategory || null,
+      quantity: productData.productQuantity || null,
+      deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null,
+      image_url: null // سيتم تحديثه بعد رفع الصورة
+    };
+
+    // فحص الحقول المطلوبة
+    if (!product.name || !product.price || !product.material || !product.category || !product.quantity || !product.deposit) {
+      alert("يرجى ملء جميع الحقول المطلوبة (الاسم، السعر، المادة، الفئة، الكمية، الإيداع)");
+      return;
+    }
+
+    try {
+      // التعامل مع رفع الصورة
+      const imageFile = formData.get("productImageFile");
+      if (imageFile && imageFile.size > 0) {
+        const fileName = `${Date.now()}_${imageFile.name}`;
+        const { data, error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(fileName, imageFile);
+        if (uploadError) {
+          console.error("❌ Error uploading image:", uploadError);
+          throw uploadError;
+        }
+        // جلب الرابط العام للصورة
+        const { data: publicUrlData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(fileName);
+        product.image_url = publicUrlData.publicUrl;
+      } else if (productData.productImageUrl) {
+        product.image_url = productData.productImageUrl;
+      }
+
+      console.log("البيانات اللي بتتبعت للمنتج:", product);
+
+      const { error } = await supabase.from("products").insert([product]);
+      if (error) {
+        console.error("❌ Supabase error details:", error);
+        throw error;
+      }
+      this.productForm.reset();
+      this.productModal.style.display = "none";
+      await this.renderProducts();
+      await this.updateDashboardStats();
+      alert("✅ Product added successfully!");
+    } catch (err) {
+      console.error("❌ Error adding product:", err);
+      alert(`Failed to add product: ${err.message}`);
+    }
+  }
+
+  // إضافة أوردر
+  async addOrder(e) {
+    e.preventDefault();
+    const formData = new FormData(this.orderForm);
+    const orderData = Object.fromEntries(formData.entries());
+    const order = {
+      customer: orderData.orderCustomer || null,
+      phone: orderData.orderPhone || null,
+      instagram: orderData.orderInstagram || null,
+      products: orderData.orderProducts ? orderData.orderProducts.split(",") : [],
+      customDetails: orderData.customOrderDetails || null,
+      deposit: orderData.orderDeposit ? parseFloat(orderData.orderDeposit) : null,
+      status: orderData.orderStatus || null
+    };
+
+    console.log("البيانات اللي بتتبعت للأوردر:", order);
+
+    if (!order.customer || !order.phone || !order.deposit || !order.status) {
+      alert("يرجى ملء جميع الحقول المطلوبة (اسم العميل، رقم الهاتف، الإيداع، الحالة)");
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("orders").insert([order]);
+      if (error) {
+        console.error("❌ Supabase error details:", error);
+        throw error;
+      }
+      this.orderForm.reset();
+      this.orderModal.style.display = "none";
+      await this.renderOrders();
+      await this.updateDashboardStats();
+      alert("✅ Order added successfully!");
+    } catch (err) {
+      console.error("❌ Error adding order:", err);
+      alert(`Failed to add order: ${err.message}`);
+    }
+  }
+
+  // ريل تايم
+  setupRealtime() {
+    supabase
+      .channel("products-changes")
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "products" },
+        () => { this.renderProducts(); this.updateDashboardStats(); }
+      ).subscribe();
+
+    supabase
+      .channel("orders-changes")
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        () => { this.renderOrders(); this.updateDashboardStats(); }
+      ).subscribe();
+  }
+
+  // ربط الأزرار و إغلاق المودالات
+  bindUI() {
+    // فتح المودالات
+    if (this.addProductBtn && this.productModal) {
+      this.addProductBtn.addEventListener("click", () => {
+        this.productForm.reset();
+        this.productModal.style.display = "block";
+      });
+    }
+    if (this.addOrderBtn && this.orderModal) {
+      this.addOrderBtn.addEventListener("click", () => {
+        this.orderForm.reset();
+        this.orderModal.style.display = "block";
+      });
+    }
+
+    // غلق المودالات
+    document.querySelectorAll(".close-modal").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        btn.closest(".modal").style.display = "none";
+      });
+    });
+
+    // فورمات
+    if (this.productForm) this.productForm.addEventListener("submit", (e) => this.addProduct(e));
+    if (this.orderForm) this.orderForm.addEventListener("submit", (e) => this.addOrder(e));
+  }
+
+  // التنقل بين التبويبات
   setupNavigation() {
-    const tabs = document.querySelectorAll(".nav-btn");
-    const sections = document.querySelectorAll(".section");
+    const tabs = document.querySelectorAll("nav ul li a");
+    const sections = document.querySelectorAll(".page-content");
 
     tabs.forEach((tab) => {
-      tab.addEventListener("click", () => {
-        sections.forEach((s) => (s.style.display = "none"));
+      tab.addEventListener("click", (e) => {
+        e.preventDefault();
+        sections.forEach((s) => s.classList.remove("active"));
         tabs.forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
-        const target = tab.getAttribute("data-target");
-        document.getElementById(target).style.display = "block";
+        const target = tab.getAttribute("href").substring(1);
+        document.getElementById(`${target}-page`).classList.add("active");
       });
     });
   }
 
+  // تصفية المنتجات حسب الفئة
   setupFilters() {
-    const filters = document.querySelectorAll(".filter-btn");
+    const filters = document.querySelectorAll(".category-btn");
     filters.forEach((btn) => {
       btn.addEventListener("click", () => {
+        filters.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
         const category = btn.getAttribute("data-category");
         document.querySelectorAll(".product-card").forEach((card) => {
-          if (
-            category === "all" ||
-            card.querySelector(".detail-value").innerText === category
-          ) {
+          const cardCategory = card.querySelector(".detail-value").innerText.toLowerCase();
+          if (category === "all" || cardCategory === category) {
             card.style.display = "block";
           } else {
             card.style.display = "none";
@@ -1028,6 +1329,7 @@ class ManagementSystem {
     });
   }
 
+  // إعداد أزرار Edit و Delete
   setupActions() {
     document.addEventListener("click", async (e) => {
       if (e.target.closest(".edit-btn")) {
@@ -1038,35 +1340,38 @@ class ManagementSystem {
         const id = e.target.closest(".action-btn").dataset.id;
         if (confirm("متأكدة عايزة تمسحي المنتج؟")) {
           const { error } = await supabase.from("products").delete().eq("id", id);
-          if (error) console.error(error);
-          else this.renderProducts();
+          if (error) console.error("❌ Error deleting product:", error);
+          else {
+            await this.renderProducts();
+            alert("✅ Product deleted successfully!");
+          }
         }
       }
     });
   }
 
-  // ⚡ init واحدة بس
+  // تشغيل السيستم
   async init() {
     await this.renderProducts();
     await this.renderOrders();
     await this.updateDashboardStats();
     this.bindUI();
     this.setupRealtime();
-    this.setupNavigation(); // ⬅️
-    this.setupFilters();    // ⬅️
-    this.setupActions();    // ⬅️
+    this.setupNavigation();
+    this.setupFilters();
+    this.setupActions();
   }
 }
 
-// 🚀 مرّة واحدة فقط
+// 🚀 بدء التشغيل (مرّة واحدة فقط)
 document.addEventListener("DOMContentLoaded", () => {
   const system = new ManagementSystem();
   system.init();
 });
 </script>
-
 </body>
 </html>
+
 
 
 
