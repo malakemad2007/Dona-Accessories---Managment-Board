@@ -6,11 +6,10 @@
     <meta name="description" content="Elegant Management System for Dona Accessories">
     <meta name="author" content="Dona Accessories">
     <title>Dona Accessories - Management System</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Supabase SDK -->
-   <style>
+    <style>
         :root {
             --warm-beige: #F5F5F5;
             --dark-gold: #D4A017;
@@ -975,228 +974,333 @@
             </form>
         </div>
     </div>
-<script>
-// ✅ Supabase Configuration
-const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
+    <script>
+        // ✅ Supabase Configuration
+        const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
+        const supabaseKey =
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
 
-const { createClient } = window.supabase;
-const supabase = createClient(supabaseUrl, supabaseKey);
-console.log("✅ Supabase client ready:", supabase);
+        const { createClient } = window.supabase;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        console.log("✅ Supabase client ready:", supabase);
 
-// --------------------------------------------------------------------------------
-// Management System Class
-// --------------------------------------------------------------------------------
-class ManagementSystem {
-  constructor() {
-    // عناصر الـ UI
-    this.productsContainer = document.getElementById("products-grid");
-    this.ordersContainer   = document.getElementById("orders-grid");
+        // --------------------------------------------------------------------------------
+        // Management System Class
+        // --------------------------------------------------------------------------------
+        class ManagementSystem {
+          constructor() {
+            // عناصر الـ UI
+            this.productsContainer = document.getElementById("products-grid");
+            this.ordersContainer = document.getElementById("orders-grid");
 
-    this.dashboardStats = {
-      totalProducts: document.getElementById("total-products"),
-      totalOrders:   document.getElementById("total-orders"),
-      totalRevenue:  document.getElementById("total-revenue"),
-      pendingOrders: document.getElementById("pending-orders"),
-    };
+            this.dashboardStats = {
+              totalProducts: document.getElementById("total-products"),
+              totalOrders: document.getElementById("total-orders"),
+              totalRevenue: document.getElementById("total-revenue"),
+              pendingOrders: document.getElementById("pending-orders"),
+            };
 
-    // المودالات + الفورمات
-    this.productModal = document.getElementById("productModal");
-    this.orderModal   = document.getElementById("orderModal");
-    this.productForm  = document.getElementById("productForm");
-    this.orderForm    = document.getElementById("orderForm");
+            // المودالات + الفورمات
+            this.productModal = document.getElementById("productModal");
+            this.orderModal = document.getElementById("orderModal");
+            this.productForm = document.getElementById("productForm");
+            this.orderForm = document.getElementById("orderForm");
 
-    // الأزرار
-    this.addProductBtn = document.getElementById("add-product-btn");
-    this.addOrderBtn   = document.getElementById("add-order-btn");
-  }
+            // الأزرار
+            this.addProductBtn = document.getElementById("add-product-btn");
+            this.addOrderBtn = document.getElementById("add-order-btn");
+          }
 
-  // جلب المنتجات
-  async renderProducts() {
-    try {
-      const { data, error } = await supabase.from("products").select("*");
-      if (error) throw error;
+          // جلب المنتجات
+          async renderProducts() {
+            try {
+              const { data, error } = await supabase.from("products").select("*");
+              if (error) throw error;
 
-      if (!this.productsContainer) return;
-      this.productsContainer.innerHTML = "";
+              if (!this.productsContainer) return;
+              this.productsContainer.innerHTML = "";
 
-      data.forEach((product) => {
-        const div = document.createElement("div");
-        div.className = "bg-white p-4 rounded-xl shadow flex justify-between items-center";
-        div.innerHTML = `
-          <div>
-            <p class="font-semibold">${product.name ?? ""}</p>
-            <p class="text-sm text-gray-600">EGP ${product.price ?? 0}</p>
-          </div>
-          <span class="text-xs text-gray-400">${product.category ?? ""}</span>
-        `;
-        this.productsContainer.appendChild(div);
-      });
-    } catch (err) {
-      console.error("❌ Error fetching products:", err);
-    }
-  }
+              data.forEach((product, index) => {
+                const div = document.createElement("div");
+                div.className = "product-card";
+                div.style.setProperty('--index', index);
+                div.innerHTML = `
+                  <div class="product-image" style="background-image: url(${product.imageUrl || 'https://via.placeholder.com/300'})"></div>
+                  <div class="product-info">
+                    <h3 class="product-name">${product.name || "Unnamed Product"}</h3>
+                    <p class="product-price">EGP ${product.price || 0}</p>
+                    <div class="product-details">
+                      <div class="detail-item">
+                        <span class="detail-label">Category:</span>
+                        <span class="detail-value">${product.category || "N/A"}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Material:</span>
+                        <span class="detail-value">${product.material || "N/A"}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Quantity:</span>
+                        <span class="detail-value">${product.quantity || "N/A"}</span>
+                      </div>
+                      <div class="detail-item">
+                        <span class="detail-label">Deposit:</span>
+                        <span class="detail-value">EGP ${product.deposit || 0}</span>
+                      </div>
+                    </div>
+                    ${product.customDetails ? `<div class="custom-details">${product.customDetails}</div>` : ""}
+                    ${product.notes ? `<div class="custom-details">${product.notes}</div>` : ""}
+                    <div class="actions-container">
+                      <button class="edit-btn" data-id="${product.id}">
+                        <i class="fas fa-edit"></i> Edit
+                      </button>
+                      <button class="action-btn" data-id="${product.id}">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                `;
+                this.productsContainer.appendChild(div);
+              });
+            } catch (err) {
+              console.error("❌ Error fetching products:", err);
+            }
+          }
 
-  // جلب الطلبات
-  async renderOrders() {
-    try {
-      const { data, error } = await supabase.from("orders").select("*");
-      if (error) throw error;
+          // جلب الطلبات
+          async renderOrders() {
+            try {
+              const { data, error } = await supabase.from("orders").select("*");
+              if (error) throw error;
 
-      if (!this.ordersContainer) return;
-      this.ordersContainer.innerHTML = "";
+              if (!this.ordersContainer) return;
+              this.ordersContainer.innerHTML = "";
 
-      data.forEach((order) => {
-        const div = document.createElement("div");
-        div.className = "bg-white p-4 rounded-xl shadow flex justify-between items-center";
-        div.innerHTML = `
-          <div>
-            <p class="font-semibold">Order #${order.id}</p>
-            <p class="text-sm text-gray-600">${order.status ?? ""}</p>
-          </div>
-          <span class="text-xs text-gray-400">${order.created_at ?? ""}</span>
-        `;
-        this.ordersContainer.appendChild(div);
-      });
-    } catch (err) {
-      console.error("❌ Error fetching orders:", err);
-    }
-  }
+              data.forEach((order) => {
+                const div = document.createElement("div");
+                div.className = "order-card";
+                div.innerHTML = `
+                  <div class="order-info">
+                    <h3 class="order-id">Order #${order.id}</h3>
+                    <div class="order-details">
+                      <div class="order-item">
+                        <span class="order-label">Customer:</span>
+                        <span class="order-value">${order.customer || "N/A"}</span>
+                      </div>
+                      <div class="order-item">
+                        <span class="order-label">Phone:</span>
+                        <span class="order-value">${order.phone || "N/A"}</span>
+                      </div>
+                      <div class="order-item">
+                        <span class="order-label">Status:</span>
+                        <span class="order-value status-${order.status || "deposit"}">${order.status || "N/A"}</span>
+                      </div>
+                      <div class="order-item">
+                        <span class="order-label">Deposit:</span>
+                        <span class="order-value">EGP ${order.deposit || 0}</span>
+                      </div>
+                    </div>
+                    <div class="actions-container">
+                      <button class="edit-btn" data-id="${order.id}">
+                        <i class="fas fa-edit"></i> Edit
+                      </button>
+                      <button class="action-btn" data-id="${order.id}">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                `;
+                this.ordersContainer.appendChild(div);
+              });
+            } catch (err) {
+              console.error("❌ Error fetching orders:", err);
+            }
+          }
 
-  // تحديث Dashboard
-  async updateDashboardStats() {
-    try {
-      const { count: productsCount } = await supabase
-        .from("products")
-        .select("*", { count: "exact", head: true });
+          // تحديث Dashboard
+          async updateDashboardStats() {
+            try {
+              const { count: productsCount } = await supabase
+                .from("products")
+                .select("*", { count: "exact", head: true });
 
-      const { count: ordersCount } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true });
+              const { count: ordersCount } = await supabase
+                .from("orders")
+                .select("*", { count: "exact", head: true });
 
-      if (this.dashboardStats.totalProducts)
-        this.dashboardStats.totalProducts.innerText = productsCount ?? 0;
+              const { data: orders } = await supabase
+                .from("orders")
+                .select("deposit")
+                .eq("status", "delivered");
 
-      if (this.dashboardStats.totalOrders)
-        this.dashboardStats.totalOrders.innerText = ordersCount ?? 0;
+              const totalRevenue = orders.reduce((sum, order) => sum + (order.deposit || 0), 0);
 
-      if (this.dashboardStats.totalRevenue)
-        this.dashboardStats.totalRevenue.innerText = "EGP 0"; // مؤقت
+              if (this.dashboardStats.totalProducts)
+                this.dashboardStats.totalProducts.innerText = productsCount ?? 0;
 
-      if (this.dashboardStats.pendingOrders)
-        this.dashboardStats.pendingOrders.innerText = "0"; // مؤقت
-    } catch (err) {
-      console.error("❌ Error updating dashboard:", err);
-    }
-  }
+              if (this.dashboardStats.totalOrders)
+                this.dashboardStats.totalOrders.innerText = ordersCount ?? 0;
 
-  // إضافة منتج
-  async addProduct(e) {
-    e.preventDefault();
-    const formData = new FormData(this.productForm);
-    const product = Object.fromEntries(formData.entries());
-    // تحويل أرقام
-    if (product.price)   product.price   = parseFloat(product.price);
-    if (product.deposit) product.deposit = parseFloat(product.deposit);
+              if (this.dashboardStats.totalRevenue)
+                this.dashboardStats.totalRevenue.innerText = `EGP ${totalRevenue.toFixed(2)}`;
 
-    try {
-      const { error } = await supabase.from("products").insert([product]);
-      if (error) throw error;
-      this.productForm.reset();
-      this.productModal.style.display = "none";
-      await this.renderProducts();
-      await this.updateDashboardStats();
-      alert("✅ Product added successfully!");
-    } catch (err) {
-      console.error("❌ Error adding product:", err);
-      alert("Failed to add product");
-    }
-  }
+              if (this.dashboardStats.pendingOrders)
+                this.dashboardStats.pendingOrders.innerText = (await supabase
+                  .from("orders")
+                  .select("*", { count: "exact", head: true })
+                  .eq("status", "progress")).count ?? 0;
+            } catch (err) {
+              console.error("❌ Error updating dashboard:", err);
+            }
+          }
 
-  // إضافة أوردر
-  async addOrder(e) {
-    e.preventDefault();
-    const formData = new FormData(this.orderForm);
-    const order = Object.fromEntries(formData.entries());
-    if (order.deposit) order.deposit = parseFloat(order.deposit);
+          // إضافة منتج
+          async addProduct(e) {
+            e.preventDefault();
+            const formData = new FormData(this.productForm);
+            const productData = Object.fromEntries(formData.entries());
 
-    try {
-      const { error } = await supabase.from("orders").insert([order]);
-      if (error) throw error;
-      this.orderForm.reset();
-      this.orderModal.style.display = "none";
-      await this.renderOrders();
-      await this.updateDashboardStats();
-      alert("✅ Order added successfully!");
-    } catch (err) {
-      console.error("❌ Error adding order:", err);
-      alert("Failed to add order");
-    }
-  }
+            // تحويل البيانات لتتطابق مع أسماء الأعمدة في جدول products
+            const product = {
+              name: productData.productName,
+              price: productData.productPrice ? parseFloat(productData.productPrice) : null,
+              material: productData.productMaterial || null,
+              category: productData.productCategory || null,
+              quantity: productData.productQuantity || null,
+              deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null,
+              customDetails: productData.customDetails || null,
+              imageUrl: productData.productImageUrl || null,
+              notes: productData.productNotes || null
+            };
 
-  // ريل تايم
-  setupRealtime() {
-    supabase
-      .channel("products-changes")
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "products" },
-        () => { this.renderProducts(); this.updateDashboardStats(); }
-      ).subscribe();
+            // طباعة البيانات للتأكد
+            console.log("البيانات اللي بتتبعت:", product);
 
-    supabase
-      .channel("orders-changes")
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "orders" },
-        () => { this.renderOrders(); this.updateDashboardStats(); }
-      ).subscribe();
-  }
+            // فحص الحقول المطلوبة
+            if (!product.name || !product.price || !product.material || !product.category || !product.quantity || !product.deposit) {
+              alert("يرجى ملء جميع الحقول المطلوبة (الاسم، السعر، المادة، الفئة، الكمية، الإيداع)");
+              return;
+            }
 
-  // ربط الأزرار و إغلاق المودالات
-  bindUI() {
-    // فتح المودالات
-    if (this.addProductBtn && this.productModal) {
-      this.addProductBtn.addEventListener("click", () => {
-        this.productModal.style.display = "block";
-      });
-    }
-    if (this.addOrderBtn && this.orderModal) {
-      this.addOrderBtn.addEventListener("click", () => {
-        this.orderModal.style.display = "block";
-      });
-    }
+            try {
+              const { error } = await supabase.from("products").insert([product]);
+              if (error) {
+                console.error("❌ Supabase error details:", error);
+                throw error;
+              }
+              this.productForm.reset();
+              this.productModal.style.display = "none";
+              await this.renderProducts();
+              await this.updateDashboardStats();
+              alert("✅ Product added successfully!");
+            } catch (err) {
+              console.error("❌ Error adding product:", err);
+              alert(`Failed to add product: ${err.message}`);
+            }
+          }
 
-    // غلق المودالات
-    document.querySelectorAll(".close-modal").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        btn.closest(".modal").style.display = "none";
-      });
-    });
+          // إضافة أوردر
+          async addOrder(e) {
+            e.preventDefault();
+            const formData = new FormData(this.orderForm);
+            const orderData = Object.fromEntries(formData.entries());
+            const order = {
+              customer: orderData.orderCustomer || null,
+              phone: orderData.orderPhone || null,
+              instagram: orderData.orderInstagram || null,
+              products: orderData.orderProducts ? orderData.orderProducts.split(",") : [],
+              customDetails: orderData.customOrderDetails || null,
+              deposit: orderData.orderDeposit ? parseFloat(orderData.orderDeposit) : null,
+              status: orderData.orderStatus || null
+            };
 
-    // فورمات
-    if (this.productForm) this.productForm.addEventListener("submit", (e) => this.addProduct(e));
-    if (this.orderForm)   this.orderForm.addEventListener("submit",   (e) => this.addOrder(e));
-  }
+            console.log("البيانات اللي بتتبعت للأوردر:", order);
 
-  // تشغيل السيستم
-  async init() {
-    await this.renderProducts();
-    await this.renderOrders();
-    await this.updateDashboardStats();
-    this.bindUI();
-    this.setupRealtime();
-  }
-}
+            if (!order.customer || !order.phone || !order.deposit || !order.status) {
+              alert("يرجى ملء جميع الحقول المطلوبة (اسم العميل، رقم الهاتف، الإيداع، الحالة)");
+              return;
+            }
 
-// 🚀 بدء التشغيل (مرّة واحدة فقط)
-document.addEventListener("DOMContentLoaded", () => {
-  const system = new ManagementSystem();
-  system.init();
-});
-</script>
+            try {
+              const { error } = await supabase.from("orders").insert([order]);
+              if (error) {
+                console.error("❌ Supabase error details:", error);
+                throw error;
+              }
+              this.orderForm.reset();
+              this.orderModal.style.display = "none";
+              await this.renderOrders();
+              await this.updateDashboardStats();
+              alert("✅ Order added successfully!");
+            } catch (err) {
+              console.error("❌ Error adding order:", err);
+              alert(`Failed to add order: ${err.message}`);
+            }
+          }
 
+          // ريل تايم
+          setupRealtime() {
+            supabase
+              .channel("products-changes")
+              .on("postgres_changes",
+                { event: "*", schema: "public", table: "products" },
+                () => { this.renderProducts(); this.updateDashboardStats(); }
+              ).subscribe();
+
+            supabase
+              .channel("orders-changes")
+              .on("postgres_changes",
+                { event: "*", schema: "public", table: "orders" },
+                () => { this.renderOrders(); this.updateDashboardStats(); }
+              ).subscribe();
+          }
+
+          // ربط الأزرار و إغلاق المودالات
+          bindUI() {
+            // فتح المودالات
+            if (this.addProductBtn && this.productModal) {
+              this.addProductBtn.addEventListener("click", () => {
+                this.productForm.reset();
+                this.productModal.style.display = "block";
+              });
+            }
+            if (this.addOrderBtn && this.orderModal) {
+              this.addOrderBtn.addEventListener("click", () => {
+                this.orderForm.reset();
+                this.orderModal.style.display = "block";
+              });
+            }
+
+            // غلق المودالات
+            document.querySelectorAll(".close-modal").forEach((btn) => {
+              btn.addEventListener("click", () => {
+                btn.closest(".modal").style.display = "none";
+              });
+            });
+
+            // فورمات
+            if (this.productForm) this.productForm.addEventListener("submit", (e) => this.addProduct(e));
+            if (this.orderForm) this.orderForm.addEventListener("submit", (e) => this.addOrder(e));
+          }
+
+          // تشغيل السيستم
+          async init() {
+            await this.renderProducts();
+            await this.renderOrders();
+            await this.updateDashboardStats();
+            this.bindUI();
+            this.setupRealtime();
+          }
+        }
+
+        // 🚀 بدء التشغيل (مرّة واحدة فقط)
+        document.addEventListener("DOMContentLoaded", () => {
+          const system = new ManagementSystem();
+          system.init();
+        });
+    </script>
 </body>
 </html>
+
 
 
 
