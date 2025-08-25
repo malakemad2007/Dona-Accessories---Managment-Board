@@ -975,13 +975,11 @@
             </form>
         </div>
     </div>
-
-```html
 <script>
     // Supabase Configuration
     const supabaseUrl = 'https://kvkhojlmqwfsdcuusyqp.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA';
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey); // Fixed: Changed Supabase to supabase
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     class ManagementSystem {
         constructor() {
@@ -1022,6 +1020,24 @@
             document.querySelectorAll('.product-card').forEach((card, index) => {
                 card.style.setProperty('--index', index);
             });
+
+            // Subscribe to real-time changes
+            supabase
+                .channel('products')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+                    this.renderProducts();
+                    this.populateOrderProductsSelect();
+                    this.updateDashboardStats();
+                })
+                .subscribe();
+
+            supabase
+                .channel('orders')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+                    this.renderOrders();
+                    this.updateDashboardStats();
+                })
+                .subscribe();
         }
 
         setupEventListeners() {
@@ -1800,35 +1816,6 @@
         }
     }
 
-async init() {
-      this.setupEventListeners();
-      await this.renderProducts();
-      await this.renderOrders();
-      await this.populateOrderProductsSelect();
-      await this.updateDashboardStats();
-      document.querySelectorAll('.product-card').forEach((card, index) => {
-          card.style.setProperty('--index', index);
-      });
-
-      // Subscribe to real-time changes
-      supabase
-          .channel('products')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
-              this.renderProducts();
-              this.populateOrderProductsSelect();
-              this.updateDashboardStats();
-          })
-          .subscribe();
-
-      supabase
-          .channel('orders')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-              this.renderOrders();
-              this.updateDashboardStats();
-          })
-          .subscribe();
-  }
-
     document.addEventListener('DOMContentLoaded', () => {
         new ManagementSystem();
     });
@@ -1836,5 +1823,6 @@ async init() {
 
 </body>
 </html>
+
 
 
