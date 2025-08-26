@@ -998,204 +998,513 @@
     </div>
     <script>
         // Supabase Configuration
+const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
- 
-  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-  const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co"; // غيريها بالـ URL بتاع مشروعك
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA"; // غيريها بالـ anon key
-  const supabase = createClient(supabaseUrl, supabaseKey);
-
-  // === Utility: فتح/قفل المودال ===
-  function openModal(modalId) {
-    document.getElementById(modalId).style.display = "block";
+// === Utility: Open/Close Modal ===
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "flex";
   }
+}
 
-  function closeModal(modal) {
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
     modal.style.display = "none";
   }
-
-  document.querySelectorAll(".close-modal").forEach(btn => {
-    btn.addEventListener("click", () => closeModal(btn.closest(".modal")));
-  });
-
-  window.addEventListener("click", e => {
-    if (e.target.classList.contains("modal")) {
-      closeModal(e.target);
-    }
-  });
-
-  // === Render Products ===
-  async function renderProducts() {
-    const { data, error } = await supabase.from("products").select("*").order("id", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching products:", error);
-      return;
-    }
-
-    const grid = document.getElementById("products-grid");
-    grid.innerHTML = "";
-
-    data.forEach(prod => {
-      const card = document.createElement("div");
-      card.classList.add("product-card");
-
-      card.innerHTML = `
-        <img src="${prod.image_url || prod.image || 'https://via.placeholder.com/150'}" alt="Product Image" />
-        <h3>${prod.notes || "No Notes"}</h3>
-        <p>${prod.customDetails || "No Details"}</p>
-      `;
-
-      grid.appendChild(card);
-    });
-  }
-
-  // === Render Orders ===
-  async function renderOrders() {
-    const { data, error } = await supabase.from("orders").select("*").order("id", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching orders:", error);
-      return;
-    }
-
-    const list = document.getElementById("orders-list");
-    list.innerHTML = "";
-
-    data.forEach(order => {
-      const item = document.createElement("div");
-      item.classList.add("order-card");
-
-      item.innerHTML = `
-        <h3>Order #${order.id}</h3>
-        <p>Products: ${order.products || "N/A"}</p>
-        <p>Details: ${order.customDetails || "N/A"}</p>
-        <p>Deposit: ${order.deposit || 0}</p>
-        <p>Status: ${order.status || "Pending"}</p>
-        <p>Date: ${new Date(order.createdAt).toLocaleString()}</p>
-      `;
-
-      list.appendChild(item);
-    });
-  }
-
-
-// ========== MODAL HANDLING ==========
-function openModal(id) {
-  document.getElementById(id).style.display = "block";
 }
 
-function closeModal(id) {
-  document.getElementById(id).style.display = "none";
-}
-
-// زرار فتح المودال بتاع المنتج
-document.getElementById("add-product-btn").addEventListener("click", () => {
-  openModal("productModal");
-});
-
-// زرار فتح المودال بتاع الأوردر
-document.getElementById("add-order-btn").addEventListener("click", () => {
-  openModal("orderModal");
-});
-
-// أي زرار قفل جوا المودال
+// Close modals with close button
 document.querySelectorAll(".close-modal").forEach(btn => {
-  btn.addEventListener("click", e => {
-    closeModal(e.target.closest(".modal").id);
+  btn.addEventListener("click", () => {
+    closeModal(btn.closest(".modal").id);
   });
 });
 
-// لو المستخدم دوس برة المودال
+// Close modals when clicking outside
 window.addEventListener("click", e => {
   if (e.target.classList.contains("modal")) {
     closeModal(e.target.id);
   }
 });
 
-  // === Add Product Form ===
-  document.getElementById("productForm").addEventListener("submit", async e => {
-    e.preventDefault();
+// === Render Products ===
+async function renderProducts() {
+  const { data, error } = await supabase.from("products").select("*").order("id", { ascending: false });
 
-    const image_url = document.getElementById("productImage").value;
-    const notes = document.getElementById("productNotes").value;
-    const customDetails = document.getElementById("productDetails").value;
+  if (error) {
+    console.error("Error fetching products:", error);
+    showMessage("Error", "Failed to load products: " + error.message, "error");
+    return;
+  }
 
-    const { error } = await supabase.from("products").insert([
-      { image_url, notes, customDetails }
-    ]);
+  const grid = document.getElementById("products-grid");
+  grid.innerHTML = "";
 
-    if (error) {
-      alert("❌ Error adding product: " + error.message);
-    } else {
-      alert("✅ Product added!");
-      closeModal(document.getElementById("productModal"));
-      e.target.reset();
-      renderProducts();
-    }
+  data.forEach((prod, index) => {
+    const card = document.createElement("div");
+    card.classList.add("product-card");
+    card.style.setProperty("--index", index);
+
+    card.innerHTML = `
+      <div class="product-image" style="background-image: url('${prod.image_url || 'https://via.placeholder.com/150'}');"></div>
+      <div class="product-info">
+        <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
+        <p class="product-price">EGP ${prod.price || 0}</p>
+        <div class="product-details">
+          <div class="detail-item">
+            <span class="detail-label">Material:</span>
+            <span class="detail-value">${prod.material || "N/A"}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Category:</span>
+            <span class="detail-value">${prod.category || "N/A"}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Quantity:</span>
+            <span class="detail-value">${prod.quantity || "N/A"}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Deposit:</span>
+            <span class="detail-value">EGP ${prod.deposit || 0}</span>
+          </div>
+        </div>
+        ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
+        <div class="actions-container">
+          <button class="edit-btn" data-id="${prod.id}"><i class="fas fa-edit"></i> Edit</button>
+          <button class="delete-btn" data-id="${prod.id}"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
   });
+}
 
-// فتح المودال (مثال: زرار Add Product)
-document.getElementById("add-product-btn").addEventListener("click", function() {
-  document.getElementById("productModal").style.display = "block";
-});
+// === Render Orders ===
+async function renderOrders() {
+  const { data, error } = await supabase.from("orders").select("*").order("id", { ascending: false });
 
-// زرار Add Order
-document.getElementById("add-order-btn").addEventListener("click", function() {
-  document.getElementById("orderModal").style.display = "block";
-});
+  if (error) {
+    console.error("Error fetching orders:", error);
+    showMessage("Error", "Failed to load orders: " + error.message, "error");
+    return;
+  }
 
-// قفل أي مودال بالـ X
-document.querySelectorAll(".close-modal").forEach(function(btn) {
-  btn.addEventListener("click", function() {
-    this.closest(".modal").style.display = "none";
+  const grid = document.getElementById("orders-grid");
+  grid.innerHTML = "";
+
+  data.forEach((order, index) => {
+    const card = document.createElement("div");
+    card.classList.add("order-card");
+    card.style.setProperty("--index", index);
+
+    const statusClass = {
+      progress: "status-progress",
+      delivering: "status-delivering",
+      delivered: "status-delivered",
+      deposit: "status-deposit"
+    }[order.status] || "status-deposit";
+
+    card.innerHTML = `
+      <div class="order-image" style="background-image: url('https://via.placeholder.com/150');"></div>
+      <div class="order-info">
+        <h3 class="order-id">Order #${order.id}</h3>
+        <div class="order-details">
+          <div class="order-item">
+            <span class="order-label">Customer:</span>
+            <span class="order-value">${order.customer || "N/A"}</span>
+          </div>
+          <div class="order-item">
+            <span class="order-label">Phone:</span>
+            <span class="order-value">${order.phone || "N/A"}</span>
+          </div>
+          <div class="order-item">
+            <span class="order-label">Products:</span>
+            <span class="order-value">${order.products || "N/A"}</span>
+          </div>
+          <div class="order-item">
+            <span class="order-label">Deposit:</span>
+            <span class="order-value">EGP ${order.deposit || 0}</span>
+          </div>
+        </div>
+        <span class="${statusClass}">${order.status || "Pending"}</span>
+        ${order.custom_details ? `<div class="custom-details">${order.custom_details}</div>` : ""}
+        <div class="actions-container">
+          <button class="edit-btn" data-id="${order.id}"><i class="fas fa-edit"></i> Edit</button>
+          <button class="delete-btn" data-id="${order.id}"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
   });
-});
+}
 
-// لو دستي برا المحتوى يتقفل
-window.addEventListener("click", function(e) {
-  document.querySelectorAll(".modal").forEach(function(modal) {
-    if (e.target === modal) {
-      modal.style.display = "none";
-    }
-  });
-});
+// === Show Message Modal ===
+function showMessage(title, message, type = "success") {
+  const modal = document.getElementById("messageModal");
+  const titleElement = document.getElementById("messageTitle");
+  const textElement = document.getElementById("messageText");
 
+  titleElement.textContent = title;
+  textElement.textContent = message;
+  titleElement.style.color = type === "success" ? "var(--success)" : "var(--error)";
+  openModal("messageModal");
 
-  // === Add Order Form ===
-  document.getElementById("orderForm").addEventListener("submit", async e => {
-    e.preventDefault();
+  setTimeout(() => closeModal("messageModal"), 3000);
+}
 
-    const products = document.getElementById("orderProducts").value;
-    const customDetails = document.getElementById("orderDetails").value;
-    const deposit = document.getElementById("orderDeposit").value;
-    const status = document.getElementById("orderStatus").value;
+// === Add Product Form ===
+document.getElementById("productForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const form = e.target;
+  const saveBtn = form.querySelector(".save-btn");
+  saveBtn.disabled = true;
+  saveBtn.classList.add("loading");
 
-    const { error } = await supabase.from("orders").insert([
-      { products, customDetails, deposit, status, createdAt: new Date().toISOString() }
-    ]);
+  // Validate inputs
+  const name = document.getElementById("productName").value.trim();
+  const price = parseFloat(document.getElementById("productPrice").value);
+  const material = document.getElementById("productMaterial").value;
+  const category = document.getElementById("productCategory").value;
+  const quantity = document.getElementById("productQuantity").value.trim();
+  const deposit = parseFloat(document.getElementById("productDeposit").value);
+  const customDetails = document.getElementById("customDetails").value.trim();
+  const imageUrl = document.getElementById("productImageUrl").value.trim();
+  const notes = document.getElementById("productNotes").value.trim();
 
-    if (error) {
-      alert("❌ Error adding order: " + error.message);
-    } else {
-      alert("✅ Order added!");
-      closeModal(document.getElementById("orderModal"));
-      e.target.reset();
-      renderOrders();
-    }
-  });
+  // Basic validation
+  let hasError = false;
+  if (!name) {
+    document.getElementById("productNameError").style.display = "block";
+    hasError = true;
+  }
+  if (!price || price < 0) {
+    document.getElementById("productPriceError").style.display = "block";
+    hasError = true;
+  }
+  if (!material) {
+    document.getElementById("productMaterialError").style.display = "block";
+    hasError = true;
+  }
+  if (!category) {
+    document.getElementById("productCategoryError").style.display = "block";
+    hasError = true;
+  }
+  if (!quantity) {
+    document.getElementById("productQuantityError").style.display = "block";
+    hasError = true;
+  }
+  if (!deposit || deposit < 0) {
+    document.getElementById("productDepositError").style.display = "block";
+    hasError = true;
+  }
+  if (category === "custom" && !customDetails) {
+    document.getElementById("customDetailsError").style.display = "block";
+    hasError = true;
+  }
 
-  // === Start App ===
-  document.addEventListener("DOMContentLoaded", () => {
+  if (hasError) {
+    saveBtn.disabled = false;
+    saveBtn.classList.remove("loading");
+    return;
+  }
+
+  const productData = {
+    name,
+    price,
+    material,
+    category,
+    quantity,
+    deposit,
+    custom_details: customDetails || null,
+    image_url: imageUrl || null,
+    notes: notes || null
+  };
+
+  const { error } = await supabase.from("products").insert([productData]);
+
+  saveBtn.disabled = false;
+  saveBtn.classList.remove("loading");
+
+  if (error) {
+    showMessage("Error", "Failed to add product: " + error.message, "error");
+  } else {
+    showMessage("Success", "Product added successfully!");
+    closeModal("productModal");
+    form.reset();
     renderProducts();
-    renderOrders();
-  });
+  }
+});
 
+// === Add Order Form ===
+document.getElementById("orderForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const form = e.target;
+  const saveBtn = form.querySelector(".save-btn");
+  saveBtn.disabled = true;
+  saveBtn.classList.add("loading");
+
+  // Validate inputs
+  const customer = document.getElementById("orderCustomer").value.trim();
+  const phone = document.getElementById("orderPhone").value.trim();
+  const instagram = document.getElementById("orderInstagram").value.trim();
+  const products = Array.from(document.getElementById("orderProducts").selectedOptions).map(opt => opt.value);
+  const customDetails = document.getElementById("customOrderDetails").value.trim();
+  const deposit = parseFloat(document.getElementById("orderDeposit").value);
+  const status = document.getElementById("orderStatus").value;
+
+  // Basic validation
+  let hasError = false;
+  if (!customer) {
+    document.getElementById("orderCustomerError").style.display = "block";
+    hasError = true;
+  }
+  if (!phone) {
+    document.getElementById("orderPhoneError").style.display = "block";
+    hasError = true;
+  }
+  if (products.length === 0) {
+    document.getElementById("orderProductsError").style.display = "block";
+    hasError = true;
+  }
+  if (!deposit || deposit < 0) {
+    document.getElementById("orderDepositError").style.display = "block";
+    hasError = true;
+  }
+  if (!status) {
+    document.getElementById("orderStatusError").style.display = "block";
+    hasError = true;
+  }
+  if (products.includes("custom") && !customDetails) {
+    document.getElementById("customOrderDetailsError").style.display = "block";
+    hasError = true;
+  }
+
+  if (hasError) {
+    saveBtn.disabled = false;
+    saveBtn.classList.remove("loading");
+    return;
+  }
+
+  const orderData = {
+    customer,
+    phone,
+    instagram: instagram || null,
+    products: products.join(", "),
+    custom_details: customDetails || null,
+    deposit,
+    status,
+    created_at: new Date().toISOString()
+  };
+
+  const { error } = await supabase.from("orders").insert([orderData]);
+
+  saveBtn.disabled = false;
+  saveBtn.classList.remove("loading");
+
+  if (error) {
+    showMessage("Error", "Failed to add order: " + error.message, "error");
+  } else {
+    showMessage("Success", "Order added successfully!");
+    closeModal("orderModal");
+    form.reset();
+    renderOrders();
+  }
+});
+
+// === Populate Order Products Dropdown ===
+async function populateOrderProducts() {
+  const { data, error } = await supabase.from("products").select("id, name");
+  if (error) {
+    console.error("Error fetching products for dropdown:", error);
+    return;
+  }
+
+  const select = document.getElementById("orderProducts");
+  select.innerHTML = "";
+  data.forEach(product => {
+    const option = document.createElement("option");
+    option.value = product.name;
+    option.textContent = product.name;
+    select.appendChild(option);
+  });
+}
+
+// === Toggle Custom Details Field ===
+document.getElementById("productCategory").addEventListener("change", e => {
+  const customDetailsGroup = document.getElementById("customDetailsGroup");
+  customDetailsGroup.style.display = e.target.value === "custom" ? "block" : "none";
+});
+
+document.getElementById("orderProducts").addEventListener("change", () => {
+  const customDetailsGroup = document.getElementById("customOrderDetailsGroup");
+  const selectedProducts = Array.from(document.getElementById("orderProducts").selectedOptions).map(opt => opt.value);
+  customDetailsGroup.style.display = selectedProducts.includes("custom") ? "block" : "none";
+});
+
+// === Clear Error Messages on Input ===
+document.querySelectorAll(".form-group input, .form-group select, .form-group textarea").forEach(input => {
+  input.addEventListener("input", () => {
+    const errorElement = document.getElementById(`${input.id}Error`);
+    if (errorElement) errorElement.style.display = "none";
+  });
+});
+
+// === Navigation Handling ===
+document.querySelectorAll("nav ul li a").forEach(link => {
+  link.addEventListener("click", e => {
+    e.preventDefault();
+    const targetPage = link.getAttribute("href").substring(1);
+    document.querySelectorAll(".page-content").forEach(page => {
+      page.classList.remove("active");
+    });
+    document.getElementById(`${targetPage}-page`).classList.add("active");
+    document.querySelectorAll("nav ul li a").forEach(navLink => {
+      navLink.classList.remove("active");
+    });
+    link.classList.add("active");
+  });
+});
+
+// === Category Filter ===
+document.querySelectorAll(".category-btn").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    document.querySelectorAll(".category-btn").forEach(b => {
+      b.classList.remove("active");
+      b.setAttribute("aria-selected", "false");
+    });
+    btn.classList.add("active");
+    btn.setAttribute("aria-selected", "true");
+
+    const category = btn.dataset.category;
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("id", { ascending: false })
+      .eq(category === "all" ? "id" : "category", category === "all" ? "*" : category);
+
+    if (error) {
+      console.error("Error filtering products:", error);
+      showMessage("Error", "Failed to filter products: " + error.message, "error");
+      return;
+    }
+
+    const grid = document.getElementById("products-grid");
+    grid.innerHTML = "";
+    data.forEach((prod, index) => {
+      const card = document.createElement("div");
+      card.classList.add("product-card");
+      card.style.setProperty("--index", index);
+
+      card.innerHTML = `
+        <div class="product-image" style="background-image: url('${prod.image_url || 'https://via.placeholder.com/150'}');"></div>
+        <div class="product-info">
+          <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
+          <p class="product-price">EGP ${prod.price || 0}</p>
+          <div class="product-details">
+            <div class="detail-item">
+              <span class="detail-label">Material:</span>
+              <span class="detail-value">${prod.material || "N/A"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Category:</span>
+              <span class="detail-value">${prod.category || "N/A"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Quantity:</span>
+              <span class="detail-value">${prod.quantity || "N/A"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Deposit:</span>
+              <span class="detail-value">EGP ${prod.deposit || 0}</span>
+            </div>
+          </div>
+          ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
+          <div class="actions-container">
+            <button class="edit-btn" data-id="${prod.id}"><i class="fas fa-edit"></i> Edit</button>
+            <button class="delete-btn" data-id="${prod.id}"><i class="fas fa-trash"></i> Delete</button>
+          </div>
+        </div>
+      `;
+
+      grid.appendChild(card);
+    });
+  });
+});
+
+// === Search Products ===
+document.getElementById("productSearch").addEventListener("input", async e => {
+  const searchTerm = e.target.value.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .ilike("name", `%${searchTerm}%`)
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.error("Error searching products:", error);
+    showMessage("Error", "Failed to search products: " + error.message, "error");
+    return;
+  }
+
+  const grid = document.getElementById("products-grid");
+  grid.innerHTML = "";
+  data.forEach((prod, index) => {
+    const card = document.createElement("div");
+    card.classList.add("product-card");
+    card.style.setProperty("--index", index);
+
+    card.innerHTML = `
+      <div class="product-image" style="background-image: url('${prod.image_url || 'https://via.placeholder.com/150'}');"></div>
+      <div class="product-info">
+        <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
+        <p class="product-price">EGP ${prod.price || 0}</p>
+        <div class="product-details">
+          <div class="detail-item">
+            <span class="detail-label">Material:</span>
+            <span class="detail-value">${prod.material || "N/A"}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Category:</span>
+            <span class="detail-value">${prod.category || "N/A"}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Quantity:</span>
+            <span class="detail-value">${prod.quantity || "N/A"}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Deposit:</span>
+            <span class="detail-value">EGP ${prod.deposit || 0}</span>
+          </div>
+        </div>
+        ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
+        <div class="actions-container">
+          <button class="edit-btn" data-id="${prod.id}"><i class="fas fa-edit"></i> Edit</button>
+          <button class="delete-btn" data-id="${prod.id}"><i class="fas fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+});
+
+// === Start App ===
+document.addEventListener("DOMContentLoaded", () => {
+  renderProducts();
+  renderOrders();
+  populateOrderProducts();
+});
 
     </script>
 </body>
 </html>
+
 
 
 
