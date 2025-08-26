@@ -1046,7 +1046,7 @@
                         this.productsContainer.appendChild(div);
                     });
                 } catch (err) {
-                    console.error("❌ Error fetching products:", err);
+                    console.error("❌ Error fetching products:", err.message);
                 }
             }
 
@@ -1083,7 +1083,7 @@
                         this.ordersContainer.appendChild(div);
                     });
                 } catch (err) {
-                    console.error("❌ Error fetching orders:", err);
+                    console.error("❌ Error fetching orders:", err.message);
                 }
             }
 
@@ -1108,7 +1108,7 @@
                     if (this.dashboardStats.topProduct) this.dashboardStats.topProduct.innerText = topProduct;
                     if (this.dashboardStats.lowStock) this.dashboardStats.lowStock.innerText = lowStockItems;
                 } catch (err) {
-                    console.error("❌ Error updating dashboard:", err);
+                    console.error("❌ Error updating dashboard:", err.message);
                 }
             }
 
@@ -1128,16 +1128,17 @@
                         });
                     }
                 } catch (err) {
-                    console.error("❌ Error populating order products:", err);
+                    console.error("❌ Error populating order products:", err.message);
                 }
             }
 
-            // إضافة منتج
+            // إضافة/تعديل منتج
             async addProduct(e) {
                 e.preventDefault();
                 const formData = new FormData(this.productForm);
                 const productData = Object.fromEntries(formData.entries());
 
+                // بناء كائن المنتج بدون الحقول اللي ممكن تسبب مشاكل
                 const product = {
                     name: productData.productName || null,
                     price: productData.productPrice ? parseFloat(productData.productPrice) : null,
@@ -1145,39 +1146,59 @@
                     category: productData.productCategory || null,
                     quantity: productData.productQuantity || null,
                     deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null,
-                    custom_details: productData.customDetails || null,
-                    image_url: productData.productImageUrl || null,
-                    notes: productData.productNotes || null
+                    image_url: productData.productImageUrl || null
                 };
 
+                // التحقق من الحقول المطلوبة
                 if (!product.name || !product.price || !product.material || !product.category || !product.quantity || !product.deposit) {
                     alert("يرجى ملء جميع الحقول المطلوبة (الاسم، السعر، المادة، الفئة، الكمية، الإيداع)");
                     return;
                 }
-                if (product.category === "custom" && !product.custom_details) {
-                    alert("يرجى إدخال تفاصيل مخصصة للمنتج المخصص");
-                    return;
+
+                // إضافة custom_details بس لو الفئة custom
+                if (product.category === "custom") {
+                    if (!productData.customDetails) {
+                        alert("يرجى إدخال تفاصيل مخصصة للمنتج المخصص");
+                        return;
+                    }
+                    product.custom_details = productData.customDetails;
+                }
+
+                // إضافة notes لو موجود
+                if (productData.productNotes) {
+                    product.notes = productData.productNotes;
                 }
 
                 try {
+                    // رفع الصورة لو موجودة
                     const imageFile = formData.get("productImageFile");
                     if (imageFile && imageFile.size > 0) {
                         const fileName = `${Date.now()}_${imageFile.name}`;
                         const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, imageFile);
-                        if (uploadError) throw uploadError;
+                        if (uploadError) {
+                            console.error("❌ Error uploading image:", uploadError.message);
+                            throw uploadError;
+                        }
                         const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(fileName);
                         product.image_url = publicUrlData.publicUrl;
                     }
 
                     console.log("البيانات اللي بتتبعت للمنتج:", product);
 
+                    // إضافة أو تحديث المنتج
                     if (this.currentEditProductId) {
                         const { error } = await supabase.from("products").update(product).eq("id", this.currentEditProductId);
-                        if (error) throw error;
+                        if (error) {
+                            console.error("❌ Error updating product:", error.message);
+                            throw error;
+                        }
                         alert("✅ Product updated successfully!");
                     } else {
                         const { error } = await supabase.from("products").insert([product]);
-                        if (error) throw error;
+                        if (error) {
+                            console.error("❌ Error adding product:", error.message);
+                            throw error;
+                        }
                         alert("✅ Product added successfully!");
                     }
 
@@ -1189,8 +1210,8 @@
                     await this.updateDashboardStats();
                     await this.populateOrderProducts();
                 } catch (err) {
-                    console.error("❌ Error adding/updating product:", err);
-                    alert(`Failed to add/update product: ${err.message}`);
+                    console.error("❌ Error adding/updating product:", err.message);
+                    alert(`فشل في إضافة/تحديث المنتج: ${err.message}`);
                 }
             }
 
@@ -1205,11 +1226,16 @@
                     phone: orderData.orderPhone || null,
                     instagram: orderData.orderInstagram || null,
                     products: orderData.orderProducts ? orderData.orderProducts.split(",") : [],
-                    custom_details: orderData.customOrderDetails || null,
                     deposit: orderData.orderDeposit ? parseFloat(orderData.orderDeposit) : null,
                     status: orderData.orderStatus || null
                 };
 
+                // إضافة custom_details للأوردر لو موجود
+                if (orderData.customOrderDetails) {
+                    order.custom_details = orderData.customOrderDetails;
+                }
+
+                // التحقق من الحقول المطلوبة
                 if (!order.customer || !order.phone || !order.deposit || !order.status) {
                     alert("يرجى ملء جميع الحقول المطلوبة (اسم العميل، رقم الهاتف، الإيداع، الحالة)");
                     return;
@@ -1224,11 +1250,17 @@
 
                     if (this.currentEditOrderId) {
                         const { error } = await supabase.from("orders").update(order).eq("id", this.currentEditOrderId);
-                        if (error) throw error;
+                        if (error) {
+                            console.error("❌ Error updating order:", error.message);
+                            throw error;
+                        }
                         alert("✅ Order updated successfully!");
                     } else {
                         const { error } = await supabase.from("orders").insert([order]);
-                        if (error) throw error;
+                        if (error) {
+                            console.error("❌ Error adding order:", error.message);
+                            throw error;
+                        }
                         alert("✅ Order added successfully!");
                     }
 
@@ -1239,8 +1271,8 @@
                     await this.renderOrders();
                     await this.updateDashboardStats();
                 } catch (err) {
-                    console.error("❌ Error adding/updating order:", err);
-                    alert(`Failed to add/update order: ${err.message}`);
+                    console.error("❌ Error adding/updating order:", err.message);
+                    alert(`فشل في إضافة/تحديث الأوردر: ${err.message}`);
                 }
             }
 
@@ -1248,7 +1280,10 @@
             async editProduct(id) {
                 try {
                     const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
-                    if (error) throw error;
+                    if (error) {
+                        console.error("❌ Error fetching product:", error.message);
+                        throw error;
+                    }
 
                     this.currentEditProductId = id;
                     document.getElementById("productModalTitle").innerText = "Edit Product";
@@ -1268,8 +1303,8 @@
 
                     this.toggleCustomDetails(data.category === "custom");
                 } catch (err) {
-                    console.error("❌ Error fetching product for edit:", err);
-                    alert(`Failed to load product: ${err.message}`);
+                    console.error("❌ Error fetching product for edit:", err.message);
+                    alert(`فشل في تحميل المنتج: ${err.message}`);
                 }
             }
 
@@ -1277,7 +1312,10 @@
             async editOrder(id) {
                 try {
                     const { data, error } = await supabase.from("orders").select("*").eq("id", id).single();
-                    if (error) throw error;
+                    if (error) {
+                        console.error("❌ Error fetching order:", error.message);
+                        throw error;
+                    }
 
                     this.currentEditOrderId = id;
                     document.getElementById("orderModalTitle").innerText = "Edit Order";
@@ -1297,8 +1335,8 @@
 
                     this.toggleCustomOrderDetails(data.custom_details ? true : false);
                 } catch (err) {
-                    console.error("❌ Error fetching order for edit:", err);
-                    alert(`Failed to load order: ${err.message}`);
+                    console.error("❌ Error fetching order for edit:", err.message);
+                    alert(`فشل في تحميل الأوردر: ${err.message}`);
                 }
             }
 
@@ -1307,14 +1345,17 @@
                 if (!confirm("متأكدة عايزة تمسحي المنتج؟")) return;
                 try {
                     const { error } = await supabase.from("products").delete().eq("id", id);
-                    if (error) throw error;
+                    if (error) {
+                        console.error("❌ Error deleting product:", error.message);
+                        throw error;
+                    }
                     await this.renderProducts();
                     await this.updateDashboardStats();
                     await this.populateOrderProducts();
                     alert("✅ Product deleted successfully!");
                 } catch (err) {
-                    console.error("❌ Error deleting product:", err);
-                    alert(`Failed to delete product: ${err.message}`);
+                    console.error("❌ Error deleting product:", err.message);
+                    alert(`فشل في حذف المنتج: ${err.message}`);
                 }
             }
 
@@ -1323,13 +1364,16 @@
                 if (!confirm("متأكدة عايزة تمسحي الأوردر؟")) return;
                 try {
                     const { error } = await supabase.from("orders").delete().eq("id", id);
-                    if (error) throw error;
+                    if (error) {
+                        console.error("❌ Error deleting order:", error.message);
+                        throw error;
+                    }
                     await this.renderOrders();
                     await this.updateDashboardStats();
                     alert("✅ Order deleted successfully!");
                 } catch (err) {
-                    console.error("❌ Error deleting order:", err);
-                    alert(`Failed to delete order: ${err.message}`);
+                    console.error("❌ Error deleting order:", err.message);
+                    alert(`فشل في حذف الأوردر: ${err.message}`);
                 }
             }
 
