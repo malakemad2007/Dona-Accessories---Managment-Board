@@ -1024,6 +1024,38 @@
                 this.currentEditOrderId = null;
             }
 
+    // 🔔 Realtime setup
+    setupRealtime() {
+        // Products realtime
+        supabase
+            .channel("products-changes")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "products" },
+                (payload) => {
+                    console.log("📦 Product change:", payload);
+                    this.renderProducts();
+                    this.updateDashboardStats();
+                    this.populateOrderProducts();
+                }
+            )
+            .subscribe();
+
+        // Orders realtime
+        supabase
+            .channel("orders-changes")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "orders" },
+                (payload) => {
+                    console.log("🛒 Order change:", payload);
+                    this.renderOrders();
+                    this.updateDashboardStats();
+                }
+            )
+            .subscribe();
+    }
+
             // جلب المنتجات
             async renderProducts(searchQuery = "") {
                 try {
@@ -1542,22 +1574,6 @@
                 });
             }
 
-            // ريل تايم
-            setupRealtime() {
-                supabase.channel("products-changes")
-                    .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
-                        this.renderProducts();
-                        this.updateDashboardStats();
-                        this.populateOrderProducts();
-                    }).subscribe();
-
-                supabase.channel("orders-changes")
-                    .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
-                        this.renderOrders();
-                        this.updateDashboardStats();
-                    }).subscribe();
-            }
-
 
             // بدء النظام
             async init() {
@@ -1585,11 +1601,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     await system.renderOrders();
     await system.updateDashboardStats();
     await system.populateOrderProducts();
+
+// ===== Start the app =====
+document.addEventListener("DOMContentLoaded", async () => {
+    const system = new ManagementSystem();
+    system.bindUI();
+    system.setupFilters();
+    system.setupSearch();
+    system.setupNavigation();
+    system.setupRealtime();
+
+    await system.renderProducts();
+    await system.renderOrders();
+    await system.updateDashboardStats();
+    await system.populateOrderProducts();
 });
+
         
 
     </script>
 </body>
 </html>
+
 
 
