@@ -281,6 +281,7 @@
             display: inline-block;
         }
 
+
         .status-delivering {
             background: #DBEAFE;
             color: #1E40AF;
@@ -787,6 +788,7 @@
             <div class="orders-grid" id="orders-grid" aria-live="polite"></div>
         </section>
 
+
         <section class="page-content" id="reports-page" role="region" aria-labelledby="reports-title">
             <div class="page-header">
                 <div>
@@ -848,7 +850,7 @@
     <!-- Custom Message Modal -->
     <div class="modal" id="messageModal" role="dialog" aria-hidden="true">
         <div class="modal-content">
-            <span class="close-modal" aria-label="Close modal">&times;</span>
+            <span class="close-modal">&times;</span>
             <h2 class="modal-title" id="messageTitle"></h2>
             <p id="messageText"></p>
         </div>
@@ -1134,6 +1136,33 @@ window.addEventListener("click", e => {
     }
   });
 
+// فتح المودال (مثال: زرار Add Product)
+document.getElementById("add-product-btn").addEventListener("click", function() {
+  document.getElementById("productModal").style.display = "block";
+});
+
+// زرار Add Order
+document.getElementById("add-order-btn").addEventListener("click", function() {
+  document.getElementById("orderModal").style.display = "block";
+});
+
+// قفل أي مودال بالـ X
+document.querySelectorAll(".close-modal").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    this.closest(".modal").style.display = "none";
+  });
+});
+
+// لو دستي برا المحتوى يتقفل
+window.addEventListener("click", function(e) {
+  document.querySelectorAll(".modal").forEach(function(modal) {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+});
+
+
   // === Add Order Form ===
   document.getElementById("orderForm").addEventListener("submit", async e => {
     e.preventDefault();
@@ -1167,6 +1196,7 @@ window.addEventListener("click", e => {
     </script>
 </body>
 </html>
+
 
 
 
