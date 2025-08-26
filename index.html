@@ -982,7 +982,6 @@ const supabaseKey =
 
 const { createClient } = window.supabase;
 const supabase = createClient(supabaseUrl, supabaseKey);
-console.log("✅ Supabase client ready:", supabase);
 
 // --------------------------------------------------------------------------------
 // Management System Class
@@ -1025,30 +1024,14 @@ class ManagementSystem {
             <h3 class="product-name">${product.name || "Unnamed Product"}</h3>
             <p class="product-price">EGP ${product.price || 0}</p>
             <div class="product-details">
-              <div class="detail-item">
-                <span class="detail-label">Category:</span>
-                <span class="detail-value">${product.category || "N/A"}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Material:</span>
-                <span class="detail-value">${product.material || "N/A"}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Quantity:</span>
-                <span class="detail-value">${product.quantity || "N/A"}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Deposit:</span>
-                <span class="detail-value">EGP ${product.deposit || 0}</span>
-              </div>
+              <div class="detail-item"><span class="detail-label">Category:</span> <span class="detail-value">${product.category || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Material:</span> <span class="detail-value">${product.material || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Quantity:</span> <span class="detail-value">${product.quantity || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Deposit:</span> <span class="detail-value">EGP ${product.deposit || 0}</span></div>
             </div>
             <div class="actions-container">
-              <button class="edit-btn" data-id="${product.id}">
-                <i class="fas fa-edit"></i> Edit
-              </button>
-              <button class="action-btn" data-id="${product.id}">
-                <i class="fas fa-trash"></i> Delete
-              </button>
+              <button class="edit-btn" data-id="${product.id}"><i class="fas fa-edit"></i> Edit</button>
+              <button class="delete-btn" data-id="${product.id}"><i class="fas fa-trash"></i> Delete</button>
             </div>
           </div>
         `;
@@ -1075,30 +1058,14 @@ class ManagementSystem {
           <div class="order-info">
             <h3 class="order-id">Order #${order.id}</h3>
             <div class="order-details">
-              <div class="order-item">
-                <span class="order-label">Customer:</span>
-                <span class="order-value">${order.customer || "N/A"}</span>
-              </div>
-              <div class="order-item">
-                <span class="order-label">Phone:</span>
-                <span class="order-value">${order.phone || "N/A"}</span>
-              </div>
-              <div class="order-item">
-                <span class="order-label">Status:</span>
-                <span class="order-value status-${order.status || "deposit"}">${order.status || "N/A"}</span>
-              </div>
-              <div class="order-item">
-                <span class="order-label">Deposit:</span>
-                <span class="order-value">EGP ${order.deposit || 0}</span>
-              </div>
+              <div class="order-item"><span class="order-label">Customer:</span> <span class="order-value">${order.customer || "N/A"}</span></div>
+              <div class="order-item"><span class="order-label">Phone:</span> <span class="order-value">${order.phone || "N/A"}</span></div>
+              <div class="order-item"><span class="order-label">Status:</span> <span class="order-value status-${order.status || "deposit"}">${order.status || "N/A"}</span></div>
+              <div class="order-item"><span class="order-label">Deposit:</span> <span class="order-value">EGP ${order.deposit || 0}</span></div>
             </div>
             <div class="actions-container">
-              <button class="edit-btn" data-id="${order.id}">
-                <i class="fas fa-edit"></i> Edit
-              </button>
-              <button class="action-btn" data-id="${order.id}">
-                <i class="fas fa-trash"></i> Delete
-              </button>
+              <button class="edit-btn" data-id="${order.id}"><i class="fas fa-edit"></i> Edit</button>
+              <button class="delete-btn" data-id="${order.id}"><i class="fas fa-trash"></i> Delete</button>
             </div>
           </div>
         `;
@@ -1112,47 +1079,28 @@ class ManagementSystem {
   // تحديث Dashboard
   async updateDashboardStats() {
     try {
-      const { count: productsCount } = await supabase
-        .from("products")
-        .select("*", { count: "exact", head: true });
+      const { count: productsCount } = await supabase.from("products").select("*", { count: "exact", head: true });
+      const { count: ordersCount } = await supabase.from("orders").select("*", { count: "exact", head: true });
+      const { data: deliveredOrders } = await supabase.from("orders").select("deposit").eq("status", "delivered");
 
-      const { count: ordersCount } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true });
+      const totalRevenue = deliveredOrders.reduce((sum, o) => sum + (o.deposit || 0), 0);
+      const { count: pendingCount } = await supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "progress");
 
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("deposit")
-        .eq("status", "delivered");
-
-      const totalRevenue = orders.reduce((sum, order) => sum + (order.deposit || 0), 0);
-
-      if (this.dashboardStats.totalProducts)
-        this.dashboardStats.totalProducts.innerText = productsCount ?? 0;
-
-      if (this.dashboardStats.totalOrders)
-        this.dashboardStats.totalOrders.innerText = ordersCount ?? 0;
-
-      if (this.dashboardStats.totalRevenue)
-        this.dashboardStats.totalRevenue.innerText = `EGP ${totalRevenue.toFixed(2)}`;
-
-      if (this.dashboardStats.pendingOrders)
-        this.dashboardStats.pendingOrders.innerText = (await supabase
-          .from("orders")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "progress")).count ?? 0;
+      this.dashboardStats.totalProducts.innerText = productsCount ?? 0;
+      this.dashboardStats.totalOrders.innerText = ordersCount ?? 0;
+      this.dashboardStats.totalRevenue.innerText = `EGP ${totalRevenue.toFixed(2)}`;
+      this.dashboardStats.pendingOrders.innerText = pendingCount ?? 0;
     } catch (err) {
       console.error("❌ Error updating dashboard:", err);
     }
   }
 
-  // إضافة منتج مع رفع الصورة
+  // إضافة منتج
   async addProduct(e) {
     e.preventDefault();
     const formData = new FormData(this.productForm);
     const productData = Object.fromEntries(formData.entries());
 
-    // تحويل البيانات لتتطابق مع أسماء الأعمدة في جدول products
     const product = {
       name: productData.productName || null,
       price: productData.productPrice ? parseFloat(productData.productPrice) : null,
@@ -1160,43 +1108,29 @@ class ManagementSystem {
       category: productData.productCategory || null,
       quantity: productData.productQuantity || null,
       deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null,
-      image_url: null // سيتم تحديثه بعد رفع الصورة
+      image_url: productData.productImageUrl || null
     };
 
-    // فحص الحقول المطلوبة
     if (!product.name || !product.price || !product.material || !product.category || !product.quantity || !product.deposit) {
-      alert("يرجى ملء جميع الحقول المطلوبة (الاسم، السعر، المادة، الفئة، الكمية، الإيداع)");
+      alert("يرجى ملء جميع الحقول المطلوبة");
       return;
     }
 
     try {
-      // التعامل مع رفع الصورة
+      // رفع الصورة لو موجودة
       const imageFile = formData.get("productImageFile");
       if (imageFile && imageFile.size > 0) {
         const fileName = `${Date.now()}_${imageFile.name}`;
-        const { data, error: uploadError } = await supabase.storage
-          .from("product-images")
-          .upload(fileName, imageFile);
-        if (uploadError) {
-          console.error("❌ Error uploading image:", uploadError);
-          throw uploadError;
-        }
-        // جلب الرابط العام للصورة
-        const { data: publicUrlData } = supabase.storage
-          .from("product-images")
-          .getPublicUrl(fileName);
-        product.image_url = publicUrlData.publicUrl;
-      } else if (productData.productImageUrl) {
-        product.image_url = productData.productImageUrl;
-      }
+        const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, imageFile);
+        if (uploadError) throw uploadError;
 
-      console.log("البيانات اللي بتتبعت للمنتج:", product);
+        const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(fileName);
+        product.image_url = publicUrlData.publicUrl;
+      }
 
       const { error } = await supabase.from("products").insert([product]);
-      if (error) {
-        console.error("❌ Supabase error details:", error);
-        throw error;
-      }
+      if (error) throw error;
+
       this.productForm.reset();
       this.productModal.style.display = "none";
       await this.renderProducts();
@@ -1213,6 +1147,7 @@ class ManagementSystem {
     e.preventDefault();
     const formData = new FormData(this.orderForm);
     const orderData = Object.fromEntries(formData.entries());
+
     const order = {
       customer: orderData.orderCustomer || null,
       phone: orderData.orderPhone || null,
@@ -1223,19 +1158,15 @@ class ManagementSystem {
       status: orderData.orderStatus || null
     };
 
-    console.log("البيانات اللي بتتبعت للأوردر:", order);
-
     if (!order.customer || !order.phone || !order.deposit || !order.status) {
-      alert("يرجى ملء جميع الحقول المطلوبة (اسم العميل، رقم الهاتف، الإيداع، الحالة)");
+      alert("يرجى ملء جميع الحقول المطلوبة");
       return;
     }
 
     try {
       const { error } = await supabase.from("orders").insert([order]);
-      if (error) {
-        console.error("❌ Supabase error details:", error);
-        throw error;
-      }
+      if (error) throw error;
+
       this.orderForm.reset();
       this.orderModal.style.display = "none";
       await this.renderOrders();
@@ -1249,45 +1180,30 @@ class ManagementSystem {
 
   // ريل تايم
   setupRealtime() {
-    supabase
-      .channel("products-changes")
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "products" },
-        () => { this.renderProducts(); this.updateDashboardStats(); }
-      ).subscribe();
+    supabase.channel("products-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+        this.renderProducts();
+        this.updateDashboardStats();
+      }).subscribe();
 
-    supabase
-      .channel("orders-changes")
-      .on("postgres_changes",
-        { event: "*", schema: "public", table: "orders" },
-        () => { this.renderOrders(); this.updateDashboardStats(); }
-      ).subscribe();
+    supabase.channel("orders-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+        this.renderOrders();
+        this.updateDashboardStats();
+      }).subscribe();
   }
 
   // ربط الأزرار و إغلاق المودالات
   bindUI() {
-    // فتح المودالات
-    if (this.addProductBtn && this.productModal) {
-      this.addProductBtn.addEventListener("click", () => {
-        this.productForm.reset();
-        this.productModal.style.display = "block";
-      });
-    }
-    if (this.addOrderBtn && this.orderModal) {
-      this.addOrderBtn.addEventListener("click", () => {
-        this.orderForm.reset();
-        this.orderModal.style.display = "block";
-      });
-    }
+    if (this.addProductBtn && this.productModal)
+      this.addProductBtn.addEventListener("click", () => { this.productForm.reset(); this.productModal.style.display = "block"; });
+    if (this.addOrderBtn && this.orderModal)
+      this.addOrderBtn.addEventListener("click", () => { this.orderForm.reset(); this.orderModal.style.display = "block"; });
 
-    // غلق المودالات
-    document.querySelectorAll(".close-modal").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        btn.closest(".modal").style.display = "none";
-      });
-    });
+    document.querySelectorAll(".close-modal").forEach(btn => btn.addEventListener("click", () => {
+      btn.closest(".modal").style.display = "none";
+    }));
 
-    // فورمات
     if (this.productForm) this.productForm.addEventListener("submit", (e) => this.addProduct(e));
     if (this.orderForm) this.orderForm.addEventListener("submit", (e) => this.addOrder(e));
   }
@@ -1296,81 +1212,39 @@ class ManagementSystem {
   setupNavigation() {
     const tabs = document.querySelectorAll("nav ul li a");
     const sections = document.querySelectorAll(".page-content");
-
-    tabs.forEach((tab) => {
-      tab.addEventListener("click", (e) => {
-        e.preventDefault();
-        sections.forEach((s) => s.classList.remove("active"));
-        tabs.forEach((t) => t.classList.remove("active"));
-        tab.classList.add("active");
-        const target = tab.getAttribute("href").substring(1);
-        document.getElementById(`${target}-page`).classList.add("active");
-      });
-    });
+    tabs.forEach(tab => tab.addEventListener("click", (e) => {
+      e.preventDefault();
+      sections.forEach(s => s.classList.remove("active"));
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const target = tab.getAttribute("href").substring(1);
+      document.getElementById(target).classList.add("active");
+    }));
   }
 
-  // تصفية المنتجات حسب الفئة
-  setupFilters() {
-    const filters = document.querySelectorAll(".category-btn");
-    filters.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        filters.forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        const category = btn.getAttribute("data-category");
-        document.querySelectorAll(".product-card").forEach((card) => {
-          const cardCategory = card.querySelector(".detail-value").innerText.toLowerCase();
-          if (category === "all" || cardCategory === category) {
-            card.style.display = "block";
-          } else {
-            card.style.display = "none";
-          }
-        });
-      });
-    });
-  }
-
-  // إعداد أزرار Edit و Delete
-  setupActions() {
-    document.addEventListener("click", async (e) => {
-      if (e.target.closest(".edit-btn")) {
-        const id = e.target.closest(".edit-btn").dataset.id;
-        alert("هنا نكتب كود تعديل المنتج ID: " + id);
-      }
-      if (e.target.closest(".action-btn")) {
-        const id = e.target.closest(".action-btn").dataset.id;
-        if (confirm("متأكدة عايزة تمسحي المنتج؟")) {
-          const { error } = await supabase.from("products").delete().eq("id", id);
-          if (error) console.error("❌ Error deleting product:", error);
-          else {
-            await this.renderProducts();
-            alert("✅ Product deleted successfully!");
-          }
-        }
-      }
-    });
-  }
-
-  // تشغيل السيستم
+  // بدء النظام
   async init() {
     await this.renderProducts();
     await this.renderOrders();
     await this.updateDashboardStats();
-    this.bindUI();
     this.setupRealtime();
+    this.bindUI();
     this.setupNavigation();
-    this.setupFilters();
-    this.setupActions();
   }
 }
 
-// 🚀 بدء التشغيل (مرّة واحدة فقط)
+// --------------------------------------------------------------------------------
+// Run
+// --------------------------------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const system = new ManagementSystem();
   system.init();
 });
+
 </script>
 </body>
 </html>
+
 
 
 
