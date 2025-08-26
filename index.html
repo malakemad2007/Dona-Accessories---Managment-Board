@@ -992,623 +992,613 @@
         </div>
     </div>
     <script>
-<script>
-    // Supabase Configuration
-    const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
-    const { createClient } = window.supabase;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+        // Supabase Configuration
+        const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
+        const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
+        
+        // Check if Supabase library is loaded
+        if (typeof window.supabase === 'undefined') {
+            console.error("❌ Supabase library not loaded. Please ensure the Supabase script is included in the <head>.");
+            document.body.innerHTML += '<p style="color: red; text-align: center;">Error: Supabase library failed to load. Check the CDN script in <head>.</p>';
+        } else {
+            const { createClient } = window.supabase;
+            const supabase = createClient(supabaseUrl, supabaseKey);
 
-    class ManagementSystem {
-        constructor() {
-            this.productsContainer = document.getElementById("products-grid");
-            this.ordersContainer = document.getElementById("orders-grid");
-            this.productSearch = document.getElementById("productSearch");
-            this.dashboardStats = {
-                totalProducts: document.getElementById("total-products"),
-                totalOrders: document.getElementById("total-orders"),
-                totalRevenue: document.getElementById("total-revenue"),
-                pendingOrders: document.getElementById("pending-orders"),
-                monthlySales: document.getElementById("monthly-sales"),
-                topProduct: document.getElementById("top-product"),
-                lowStock: document.getElementById("low-stock"),
-            };
-            this.productModal = document.getElementById("productModal");
-            this.orderModal = document.getElementById("orderModal");
-            this.productForm = document.getElementById("productForm");
-            this.orderForm = document.getElementById("orderForm");
-            this.addProductBtn = document.getElementById("add-product-btn");
-            this.addOrderBtn = document.getElementById("add-order-btn");
-            this.productCategorySelect = document.getElementById("productCategory");
-            this.orderProductsSelect = document.getElementById("orderProducts");
-            this.customDetailsGroup = document.getElementById("customDetailsGroup");
-            this.customOrderDetailsGroup = document.getElementById("customOrderDetailsGroup");
-            this.currentEditProductId = null;
-            this.currentEditOrderId = null;
-        }
-
-        // Fetch products
-        async renderProducts(searchQuery = "") {
-            try {
-                let query = supabase.from("products").select("*");
-                if (searchQuery) {
-                    query = query.ilike("name", `%${searchQuery}%`);
-                }
-                const { data, error } = await query;
-                if (error) throw error;
-
-                if (!this.productsContainer) return;
-                this.productsContainer.innerHTML = "";
-
-                if (data.length === 0) {
-                    this.productsContainer.innerHTML = '<p>No products found.</p>';
-                    return;
+            class ManagementSystem {
+                constructor() {
+                    this.productsContainer = document.getElementById("products-grid");
+                    this.ordersContainer = document.getElementById("orders-grid");
+                    this.productSearch = document.getElementById("productSearch");
+                    this.dashboardStats = {
+                        totalProducts: document.getElementById("total-products"),
+                        totalOrders: document.getElementById("total-orders"),
+                        totalRevenue: document.getElementById("total-revenue"),
+                        pendingOrders: document.getElementById("pending-orders"),
+                        monthlySales: document.getElementById("monthly-sales"),
+                        topProduct: document.getElementById("top-product"),
+                        lowStock: document.getElementById("low-stock"),
+                    };
+                    this.productModal = document.getElementById("productModal");
+                    this.orderModal = document.getElementById("orderModal");
+                    this.productForm = document.getElementById("productForm");
+                    this.orderForm = document.getElementById("orderForm");
+                    this.addProductBtn = document.getElementById("add-product-btn");
+                    this.addOrderBtn = document.getElementById("add-order-btn");
+                    this.productCategorySelect = document.getElementById("productCategory");
+                    this.orderProductsSelect = document.getElementById("orderProducts");
+                    this.customDetailsGroup = document.getElementById("customDetailsGroup");
+                    this.customOrderDetailsGroup = document.getElementById("customOrderDetailsGroup");
+                    this.currentEditProductId = null;
+                    this.currentEditOrderId = null;
                 }
 
-                data.forEach((product, index) => {
-                    const div = document.createElement("div");
-                    div.className = "product-card";
-                    div.style.setProperty('--index', index);
-                    div.innerHTML = `
-                        <div class="product-image" style="background-image: url(${product.image_url || 'https://via.placeholder.com/300'})"></div>
-                        <div class="product-info">
-                            <h3 class="product-name">${product.name || "Unnamed Product"}</h3>
-                            <p class="product-price">EGP ${product.price || 0}</p>
-                            <div class="product-details">
-                                <div class="detail-item"><span class="detail-label">Category:</span> <span class="detail-value">${product.category || "N/A"}</span></div>
-                                <div class="detail-item"><span class="detail-label">Material:</span> <span class="detail-value">${product.material || "N/A"}</span></div>
-                                <div class="detail-item"><span class="detail-label">Quantity:</span> <span class="detail-value">${product.quantity || "N/A"}</span></div>
-                                <div class="detail-item"><span class="detail-label">Deposit:</span> <span class="detail-value">EGP ${product.deposit || 0}</span></div>
-                                ${product.custom_details ? `<div class="custom-details">${product.custom_details}</div>` : ""}
-                            </div>
-                            <div class="actions-container">
-                                <button class="edit-btn" data-id="${product.id}"><i class="fas fa-edit"></i> Edit</button>
-                                <button class="delete-btn" data-id="${product.id}"><i class="fas fa-trash"></i> Delete</button>
-                            </div>
-                        </div>
-                    `;
-                    this.productsContainer.appendChild(div);
-                });
-            } catch (err) {
-                console.error("❌ Error fetching products:", err.message, err.stack);
-                this.showMessage("Error", `Failed to fetch products: ${err.message}. Please check your Supabase connection or table configuration.`, "error");
-            }
-        }
+                // Fetch products
+                async renderProducts(searchQuery = "") {
+                    try {
+                        let query = supabase.from("products").select("*");
+                        if (searchQuery) {
+                            query = query.ilike("name", `%${searchQuery}%`);
+                        }
+                        const { data, error } = await query;
+                        if (error) throw error;
 
-        // Fetch orders with serial numbers
-        async renderOrders() {
-            try {
-                const { data, error } = await supabase.from("orders").select("*").order("id", { ascending: true });
-                if (error) throw error;
+                        if (!this.productsContainer) return;
+                        this.productsContainer.innerHTML = "";
 
-                if (!this.ordersContainer) {
-                    console.error("Orders container not found");
-                    return;
+                        if (data.length === 0) {
+                            this.productsContainer.innerHTML = '<p>No products found.</p>';
+                            return;
+                        }
+
+                        data.forEach((product, index) => {
+                            const div = document.createElement("div");
+                            div.className = "product-card";
+                            div.style.setProperty('--index', index);
+                            div.innerHTML = `
+                                <div class="product-image" style="background-image: url(${product.image_url || 'https://via.placeholder.com/300'})"></div>
+                                <div class="product-info">
+                                    <h3 class="product-name">${product.name || "Unnamed Product"}</h3>
+                                    <p class="product-price">EGP ${product.price || 0}</p>
+                                    <div class="product-details">
+                                        <div class="detail-item"><span class="detail-label">Category:</span> <span class="detail-value">${product.category || "N/A"}</span></div>
+                                        <div class="detail-item"><span class="detail-label">Material:</span> <span class="detail-value">${product.material || "N/A"}</span></div>
+                                        <div class="detail-item"><span class="detail-label">Quantity:</span> <span class="detail-value">${product.quantity || "N/A"}</span></div>
+                                        <div class="detail-item"><span class="detail-label">Deposit:</span> <span class="detail-value">EGP ${product.deposit || 0}</span></div>
+                                        ${product.custom_details ? `<div class="custom-details">${product.custom_details}</div>` : ""}
+                                    </div>
+                                    <div class="actions-container">
+                                        <button class="edit-btn" data-id="${product.id}"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="delete-btn" data-id="${product.id}"><i class="fas fa-trash"></i> Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                            this.productsContainer.appendChild(div);
+                        });
+                    } catch (err) {
+                        console.error("❌ Error fetching products:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to fetch products: ${err.message}. Please check your Supabase connection or table configuration.`, "error");
+                    }
                 }
-                this.ordersContainer.innerHTML = "";
 
-                if (!data || data.length === 0) {
-                    this.ordersContainer.innerHTML = '<p>No orders found.</p>';
-                    return;
+                // Fetch orders with serial numbers
+                async renderOrders() {
+                    try {
+                        const { data, error } = await supabase.from("orders").select("*").order("id", { ascending: true });
+                        if (error) throw error;
+
+                        if (!this.ordersContainer) {
+                            console.error("Orders container not found");
+                            return;
+                        }
+                        this.ordersContainer.innerHTML = "";
+
+                        if (!data || data.length === 0) {
+                            this.ordersContainer.innerHTML = '<p>No orders found.</p>';
+                            return;
+                        }
+
+                        // Fetch product names for mapping IDs to names
+                        const { data: products, error: productsError } = await supabase.from("products").select("id, name");
+                        if (productsError) throw productsError;
+
+                        const productMap = new Map(products.map(p => [p.id, p.name]));
+
+                        data.forEach((order, index) => {
+                            const serialNumber = index + 1; // Serial number starts from 1
+                            // Handle null or non-array products
+                            const productNames = Array.isArray(order.products) ? order.products.map(id => productMap.get(parseInt(id)) || "Unknown Product").join(", ") : "N/A";
+                            const div = document.createElement("div");
+                            div.className = "order-card";
+                            div.style.setProperty('--index', index);
+                            div.innerHTML = `
+                                <div class="order-image" style="background-image: url('https://via.placeholder.com/300')"></div>
+                                <div class="order-info">
+                                    <h3 class="order-id">Order #${serialNumber}</h3>
+                                    <div class="order-details">
+                                        <div class="order-item"><span class="order-label">Customer:</span> <span class="order-value">${order.customer || "N/A"}</span></div>
+                                        <div class="order-item"><span class="order-label">Phone:</span> <span class="order-value">${order.phone || "N/A"}</span></div>
+                                        <div class="order-item"><span class="order-label">Instagram:</span> <span class="order-value">${order.instagram || "N/A"}</span></div>
+                                        <div class="order-item"><span class="order-label">Products:</span> <span class="order-value">${productNames}</span></div>
+                                        <div class="order-item"><span class="order-label">Status:</span> <span class="order-value status-${order.status || "deposit"}">${order.status || "N/A"}</span></div>
+                                        <div class="order-item"><span class="order-label">Deposit:</span> <span class="order-value">EGP ${order.deposit || 0}</span></div>
+                                        ${order.custom_details ? `<div class="custom-details">${order.custom_details}</div>` : ""}
+                                    </div>
+                                    <div class="actions-container">
+                                        <button class="edit-btn" data-id="${order.id}"><i class="fas fa-edit"></i> Edit</button>
+                                        <button class="delete-btn" data-id="${order.id}"><i class="fas fa-trash"></i> Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                            this.ordersContainer.appendChild(div);
+                        });
+                    } catch (err) {
+                        console.error("❌ Error fetching orders:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to fetch orders: ${err.message}. Please check your Supabase 'orders' table or permissions.`, "error");
+                        if (this.ordersContainer) {
+                            this.ordersContainer.innerHTML = '<p>Unable to load orders. Please try again later.</p>';
+                        }
+                    }
                 }
 
-                // Fetch product names for mapping IDs to names
-                const { data: products, error: productsError } = await supabase.from("products").select("id, name");
-                if (productsError) throw productsError;
+                // Update dashboard stats
+                async updateDashboardStats() {
+                    try {
+                        const { count: productsCount } = await supabase.from("products").select("*", { count: "exact", head: true });
+                        const { count: ordersCount } = await supabase.from("orders").select("*", { count: "exact", head: true });
+                        const { data: deliveredOrders } = await supabase.from("orders").select("deposit").eq("status", "delivered");
+                        const { count: pendingCount } = await supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "progress");
+                        const { data: products } = await supabase.from("products").select("name, quantity");
 
-                const productMap = new Map(products.map(p => [p.id, p.name]));
+                        const totalRevenue = deliveredOrders ? deliveredOrders.reduce((sum, o) => sum + (o.deposit || 0), 0) : 0;
+                        const topProduct = products ? products.reduce((prev, curr) => (prev.quantity > curr.quantity ? prev : curr)).name : "N/A";
+                        const lowStockItems = products ? products.filter(p => p.quantity && parseInt(p.quantity) < 5).length : 0;
 
-                data.forEach((order, index) => {
-                    const serialNumber = index + 1; // Serial number starts from 1
-                    // Handle null or non-array products
-                    const productNames = Array.isArray(order.products) && order.products.length > 0 
-                        ? order.products.map(id => productMap.get(parseInt(id)) || "Unknown Product").join(", ") 
-                        : order.custom_details ? "Custom Order" : "N/A";
-                    const div = document.createElement("div");
-                    div.className = "order-card";
-                    div.style.setProperty('--index', index);
-                    div.innerHTML = `
-                        <div class="order-image" style="background-image: url('https://via.placeholder.com/300')"></div>
-                        <div class="order-info">
-                            <h3 class="order-id">Order #${serialNumber}</h3>
-                            <div class="order-details">
-                                <div class="order-item"><span class="order-label">Customer:</span> <span class="order-value">${order.customer || "N/A"}</span></div>
-                                <div class="order-item"><span class="order-label">Phone:</span> <span class="order-value">${order.phone || "N/A"}</span></div>
-                                <div class="order-item"><span class="order-label">Instagram:</span> <span class="order-value">${order.instagram || "N/A"}</span></div>
-                                <div class="order-item"><span class="order-label">Products:</span> <span class="order-value">${productNames}</span></div>
-                                <div class="order-item"><span class="order-label">Status:</span> <span class="order-value status-${order.status || "deposit"}">${order.status || "N/A"}</span></div>
-                                <div class="order-item"><span class="order-label">Deposit:</span> <span class="order-value">EGP ${order.deposit || 0}</span></div>
-                                ${order.custom_details ? `<div class="custom-details">${order.custom_details}</div>` : ""}
-                            </div>
-                            <div class="actions-container">
-                                <button class="edit-btn" data-id="${order.id}"><i class="fas fa-edit"></i> Edit</button>
-                                <button class="delete-btn" data-id="${order.id}"><i class="fas fa-trash"></i> Delete</button>
-                            </div>
-                        </div>
-                    `;
-                    this.ordersContainer.appendChild(div);
-                });
-            } catch (err) {
-                console.error("❌ Error fetching orders:", err.message, err.stack);
-                this.showMessage("Error", `Failed to fetch orders: ${err.message}. Please check your Supabase 'orders' table or permissions.`, "error");
-                if (this.ordersContainer) {
-                    this.ordersContainer.innerHTML = '<p>Unable to load orders. Please try again later.</p>';
+                        this.dashboardStats.totalProducts.innerText = productsCount || 0;
+                        this.dashboardStats.totalOrders.innerText = ordersCount || 0;
+                        this.dashboardStats.totalRevenue.innerText = `EGP ${totalRevenue.toFixed(2)}`;
+                        this.dashboardStats.pendingOrders.innerText = pendingCount || 0;
+                        this.dashboardStats.monthlySales.innerText = `EGP ${totalRevenue.toFixed(2)}`;
+                        this.dashboardStats.topProduct.innerText = topProduct || "N/A";
+                        this.dashboardStats.lowStock.innerText = lowStockItems || 0;
+                    } catch (err) {
+                        console.error("❌ Error updating dashboard:", err.message, err.stack);
+                    }
                 }
-            }
-        }
 
-        // Update dashboard stats
-        async updateDashboardStats() {
-            try {
-                const { count: productsCount, error: productsError } = await supabase.from("products").select("*", { count: "exact", head: true });
-                if (productsError) throw productsError;
+                // Populate order products dropdown
+                async populateOrderProducts() {
+                    try {
+                        const { data, error } = await supabase.from("products").select("id, name");
+                        if (error) throw error;
 
-                const { count: ordersCount, error: ordersError } = await supabase.from("orders").select("*", { count: "exact", head: true });
-                if (ordersError) throw ordersError;
+                        if (this.orderProductsSelect) {
+                            this.orderProductsSelect.innerHTML = "";
+                            if (!data || data.length === 0) {
+                                const option = document.createElement("option");
+                                option.value = "";
+                                option.text = "No products available";
+                                option.disabled = true;
+                                this.orderProductsSelect.appendChild(option);
+                                return;
+                            }
+                            data.forEach(product => {
+                                const option = document.createElement("option");
+                                option.value = product.id;
+                                option.text = product.name;
+                                this.orderProductsSelect.appendChild(option);
+                            });
+                        }
+                    } catch (err) {
+                        console.error("❌ Error populating order products:", err.message, err.stack);
+                    }
+                }
 
-                const { data: deliveredOrders, error: deliveredError } = await supabase.from("orders").select("deposit").eq("status", "delivered");
-                if (deliveredError) throw deliveredError;
+                // Add or update a product
+                async addProduct(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this.productForm);
+                    const productData = Object.fromEntries(formData.entries());
 
-                const { count: pendingCount, error: pendingError } = await supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "progress");
-                if (pendingError) throw pendingError;
+                    const product = {
+                        name: productData.productName?.trim() || null,
+                        price: productData.productPrice ? parseFloat(productData.productPrice) : null,
+                        material: productData.productMaterial || null,
+                        category: productData.productCategory || null,
+                        quantity: productData.productQuantity?.trim() || null,
+                        deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null,
+                        image_url: productData.productImageUrl?.trim() || null
+                    };
 
-                const { data: products, error: productsDataError } = await supabase.from("products").select("name, quantity");
-                if (productsDataError) throw productsDataError;
-
-                const totalRevenue = deliveredOrders ? deliveredOrders.reduce((sum, o) => sum + (o.deposit || 0), 0) : 0;
-                const topProduct = products && products.length > 0 ? products.reduce((prev, curr) => (parseInt(prev.quantity) > parseInt(curr.quantity) ? prev : curr)).name : "N/A";
-                const lowStockItems = products ? products.filter(p => p.quantity && !isNaN(p.quantity) && parseInt(p.quantity) < 5).length : 0;
-
-                if (this.dashboardStats.totalProducts) this.dashboardStats.totalProducts.innerText = productsCount ?? 0;
-                if (this.dashboardStats.totalOrders) this.dashboardStats.totalOrders.innerText = ordersCount ?? 0;
-                if (this.dashboardStats.totalRevenue) this.dashboardStats.totalRevenue.innerText = `EGP ${totalRevenue.toFixed(2)}`;
-                if (this.dashboardStats.pendingOrders) this.dashboardStats.pendingOrders.innerText = pendingCount ?? 0;
-                if (this.dashboardStats.monthlySales) this.dashboardStats.monthlySales.innerText = `EGP ${totalRevenue.toFixed(2)}`;
-                if (this.dashboardStats.topProduct) this.dashboardStats.topProduct.innerText = topProduct;
-                if (this.dashboardStats.lowStock) this.dashboardStats.lowStock.innerText = lowStockItems;
-            } catch (err) {
-                console.error("❌ Error updating dashboard:", err.message, err.stack);
-                // Only show message if there's a real error
-                this.showMessage("Error", `Failed to update dashboard: ${err.message}`, "error");
-            }
-        }
-
-        // Populate order products dropdown
-        async populateOrderProducts() {
-            try {
-                const { data, error } = await supabase.from("products").select("id, name");
-                if (error) throw error;
-
-                if (this.orderProductsSelect) {
-                    this.orderProductsSelect.innerHTML = "";
-                    if (!data || data.length === 0) {
-                        const option = document.createElement("option");
-                        option.value = "";
-                        option.text = "No products available";
-                        option.disabled = true;
-                        this.orderProductsSelect.appendChild(option);
+                    if (!product.name || !product.price || !product.material || !product.category || !product.quantity || !product.deposit) {
+                        this.showMessage("Error", "Please fill all required fields (Name, Price, Material, Category, Quantity, Deposit)", "error");
                         return;
                     }
-                    data.forEach(product => {
-                        const option = document.createElement("option");
-                        option.value = product.id;
-                        option.text = product.name;
-                        this.orderProductsSelect.appendChild(option);
+
+                    if (product.category === "custom") {
+                        if (!productData.customDetails?.trim()) {
+                            this.showMessage("Error", "Please enter custom details for custom product", "error");
+                            return;
+                        }
+                        product.custom_details = productData.customDetails.trim();
+                    }
+
+                    if (productData.productNotes?.trim()) {
+                        product.notes = productData.productNotes.trim();
+                    }
+
+                    try {
+                        const imageFile = formData.get("productImageFile");
+                        if (imageFile && imageFile.size > 0) {
+                            const fileName = `${Date.now()}_${imageFile.name}`;
+                            const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, imageFile);
+                            if (uploadError) throw uploadError;
+                            const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(fileName);
+                            product.image_url = publicUrlData.publicUrl;
+                        }
+
+                        if (this.currentEditProductId) {
+                            const { error } = await supabase.from("products").update(product).eq("id", this.currentEditProductId);
+                            if (error) throw error;
+                            this.showMessage("Success", "Product updated successfully!", "success");
+                        } else {
+                            const { error } = await supabase.from("products").insert([product]);
+                            if (error) throw error;
+                            this.showMessage("Success", "Product added successfully!", "success");
+                        }
+
+                        this.productForm.reset();
+                        this.productModal.style.display = "none";
+                        this.currentEditProductId = null;
+                        document.getElementById("productModalTitle").innerText = "Add Product";
+                        await this.renderProducts();
+                        await this.updateDashboardStats();
+                        await this.populateOrderProducts();
+                    } catch (err) {
+                        console.error("❌ Error adding/updating product:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to add/update product: ${err.message}`, "error");
+                    }
+                }
+
+                // Add or update an order
+                async addOrder(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this.orderForm);
+                    const orderData = Object.fromEntries(formData.entries());
+
+                    const productSelect = document.getElementById("orderProducts");
+                    const selectedProducts = Array.from(productSelect.selectedOptions).map(option => parseInt(option.value));
+
+                    const order = {
+                        customer: orderData.orderCustomer?.trim() || null,
+                        phone: orderData.orderPhone?.trim() || null,
+                        instagram: orderData.orderInstagram?.trim() || null,
+                        products: selectedProducts.length > 0 ? selectedProducts : null,
+                        deposit: orderData.orderDeposit ? parseFloat(orderData.orderDeposit) : null,
+                        status: orderData.orderStatus || null,
+                        custom_details: orderData.customOrderDetails?.trim() || null
+                    };
+
+                    if (!order.customer || !order.phone || !order.deposit || !order.status) {
+                        this.showMessage("Error", "Please fill all required fields (Customer Name, Phone Number, Deposit, Status)", "error");
+                        return;
+                    }
+                    if (!order.products && !order.custom_details) {
+                        this.showMessage("Error", "Please select at least one product or enter custom details", "error");
+                        return;
+                    }
+
+                    try {
+                        let response;
+                        if (this.currentEditOrderId) {
+                            response = await supabase.from("orders").update(order).eq("id", this.currentEditOrderId).select();
+                        } else {
+                            response = await supabase.from("orders").insert([order]).select();
+                        }
+
+                        const { data, error } = response;
+                        if (error) throw error;
+
+                        this.showMessage("Success", this.currentEditOrderId ? "Order updated successfully!" : "Order added successfully!", "success");
+                        this.orderForm.reset();
+                        this.orderModal.style.display = "none";
+                        this.currentEditOrderId = null;
+                        document.getElementById("orderModalTitle").innerText = "Add Order";
+                        this.toggleCustomOrderDetails(false);
+                        Array.from(this.orderProductsSelect.options).forEach(option => option.selected = false);
+
+                        await this.renderOrders();
+                        await this.updateDashboardStats();
+                    } catch (err) {
+                        console.error("❌ Error adding/updating order:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to add/update order: ${err.message}.`, "error");
+                    }
+                }
+
+                // Edit a product
+                async editProduct(id) {
+                    try {
+                        const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+                        if (error) throw error;
+
+                        this.currentEditProductId = id;
+                        document.getElementById("productModalTitle").innerText = "Edit Product";
+                        this.productModal.style.display = "flex";
+
+                        document.getElementById("productName").value = data.name || "";
+                        document.getElementById("productPrice").value = data.price || "";
+                        document.getElementById("productMaterial").value = data.material || "";
+                        document.getElementById("productCategory").value = data.category || "";
+                        document.getElementById("productQuantity").value = data.quantity || "";
+                        document.getElementById("productDeposit").value = data.deposit || "";
+                        document.getElementById("customDetails").value = data.custom_details || "";
+                        document.getElementById("productImageUrl").value = data.image_url || "";
+                        document.getElementById("productNotes").value = data.notes || "";
+                        document.getElementById("imagePreview").src = data.image_url || "";
+                        document.getElementById("imagePreview").style.display = data.image_url ? "block" : "none";
+
+                        this.toggleCustomDetails(data.category === "custom");
+                    } catch (err) {
+                        console.error("❌ Error fetching product for edit:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to load product: ${err.message}`, "error");
+                    }
+                }
+
+                // Edit an order
+                async editOrder(id) {
+                    try {
+                        const { data, error } = await supabase.from("orders").select("*").eq("id", id).single();
+                        if (error) throw error;
+
+                        this.currentEditOrderId = id;
+                        document.getElementById("orderModalTitle").innerText = "Edit Order";
+                        this.orderModal.style.display = "flex";
+
+                        document.getElementById("orderCustomer").value = data.customer || "";
+                        document.getElementById("orderPhone").value = data.phone || "";
+                        document.getElementById("orderInstagram").value = data.instagram || "";
+                        document.getElementById("orderDeposit").value = data.deposit || "";
+                        document.getElementById("orderStatus").value = data.status || "";
+                        document.getElementById("customOrderDetails").value = data.custom_details || "";
+
+                        const productSelect = document.getElementById("orderProducts");
+                        Array.from(productSelect.options).forEach(option => {
+                            option.selected = data.products?.includes(parseInt(option.value)) || false;
+                        });
+
+                        this.toggleCustomOrderDetails(data.custom_details ? true : false);
+                    } catch (err) {
+                        console.error("❌ Error fetching order for edit:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to load order: ${err.message}`, "error");
+                    }
+                }
+
+                // Delete a product
+                async deleteProduct(id) {
+                    if (!confirm("Are you sure you want to delete this product?")) return;
+                    try {
+                        const { error } = await supabase.from("products").delete().eq("id", id);
+                        if (error) throw error;
+                        await this.renderProducts();
+                        await this.updateDashboardStats();
+                        await this.populateOrderProducts();
+                        this.showMessage("Success", "Product deleted successfully!", "success");
+                    } catch (err) {
+                        console.error("❌ Error deleting product:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to delete product: ${err.message}`, "error");
+                    }
+                }
+
+                // Delete an order
+                async deleteOrder(id) {
+                    if (!confirm("Are you sure you want to delete this order?")) return;
+                    try {
+                        const { error } = await supabase.from("orders").delete().eq("id", id);
+                        if (error) throw error;
+                        await this.renderOrders();
+                        await this.updateDashboardStats();
+                        this.showMessage("Success", "Order deleted successfully!", "success");
+                    } catch (err) {
+                        console.error("❌ Error deleting order:", err.message, err.stack);
+                        this.showMessage("Error", `Failed to delete order: ${err.message}`, "error");
+                    }
+                }
+
+                // Show message modal
+                showMessage(title, text, type) {
+                    const messageModal = document.getElementById("messageModal");
+                    const messageTitle = document.getElementById("messageTitle");
+                    const messageText = document.getElementById("messageText");
+                    messageTitle.innerHTML = `<i class="fas ${type === "success" ? "fa-check-circle" : "fa-times-circle"}"></i> ${title}`;
+                    messageText.innerText = text;
+                    messageModal.style.display = "flex";
+                }
+
+                // Toggle custom details visibility
+                toggleCustomDetails(show) {
+                    this.customDetailsGroup.style.display = show ? "block" : "none";
+                }
+
+                toggleCustomOrderDetails(show) {
+                    this.customOrderDetailsGroup.style.display = show ? "block" : "none";
+                }
+
+                // Setup product filters
+                setupFilters() {
+                    const filters = document.querySelectorAll(".category-btn");
+                    filters.forEach(btn => {
+                        btn.addEventListener("click", () => {
+                            filters.forEach(b => b.classList.remove("active"));
+                            btn.classList.add("active");
+                            const category = btn.getAttribute("data-category");
+                            document.querySelectorAll(".product-card").forEach(card => {
+                                const cardCategory = card.querySelector(".detail-value")?.innerText.toLowerCase();
+                                if (category === "all" || cardCategory === category) {
+                                    card.style.display = "block";
+                                } else {
+                                    card.style.display = "none";
+                                }
+                            });
+                        });
                     });
                 }
-            } catch (err) {
-                console.error("❌ Error populating order products:", err.message, err.stack);
-                this.showMessage("Error", `Failed to populate products: ${err.message}`, "error");
-            }
-        }
 
-        // Add or update a product
-        async addProduct(e) {
-            e.preventDefault();
-            const formData = new FormData(this.productForm);
-            const productData = Object.fromEntries(formData.entries());
-
-            const product = {
-                name: productData.productName?.trim() || null,
-                price: productData.productPrice ? parseFloat(productData.productPrice) : null,
-                material: productData.productMaterial || null,
-                category: productData.productCategory || null,
-                quantity: productData.productQuantity?.trim() || null,
-                deposit: productData.productDeposit ? parseFloat(productData.productDeposit) : null,
-                image_url: productData.productImageUrl?.trim() || null
-            };
-
-            // Validate required fields
-            if (!product.name || !product.price || !product.material || !product.category || !product.quantity || !product.deposit) {
-                this.showMessage("Error", "Please fill all required fields (Name, Price, Material, Category, Quantity, Deposit)", "error");
-                return;
-            }
-
-            // Add custom_details only if category is custom
-            if (product.category === "custom") {
-                if (!productData.customDetails?.trim()) {
-                    this.showMessage("Error", "Please enter custom details for custom product", "error");
-                    return;
-                }
-                product.custom_details = productData.customDetails.trim();
-            }
-
-            // Add notes if provided
-            if (productData.productNotes?.trim()) {
-                product.notes = productData.productNotes.trim();
-            }
-
-            try {
-                // Upload image if provided
-                const imageFile = formData.get("productImageFile");
-                if (imageFile && imageFile.size > 0) {
-                    const fileName = `${Date.now()}_${imageFile.name}`;
-                    const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, imageFile);
-                    if (uploadError) {
-                        console.error("❌ Error uploading image:", uploadError.message);
-                        throw uploadError;
+                // Setup product search
+                setupSearch() {
+                    if (this.productSearch) {
+                        this.productSearch.addEventListener("input", () => {
+                            const query = this.productSearch.value.trim();
+                            this.renderProducts(query);
+                        });
                     }
-                    const { data: publicUrlData } = supabase.storage.from("product-images").getPublicUrl(fileName);
-                    product.image_url = publicUrlData.publicUrl;
                 }
 
-                if (this.currentEditProductId) {
-                    const { error } = await supabase.from("products").update(product).eq("id", this.currentEditProductId);
-                    if (error) throw error;
-                    this.showMessage("Success", "Product updated successfully!", "success");
-                } else {
-                    const { error } = await supabase.from("products").insert([product]);
-                    if (error) throw error;
-                    this.showMessage("Success", "Product added successfully!", "success");
+                // Setup navigation
+                setupNavigation() {
+                    const tabs = document.querySelectorAll("nav ul li a");
+                    const sections = document.querySelectorAll(".page-content");
+                    tabs.forEach(tab => {
+                        tab.addEventListener("click", (e) => {
+                            e.preventDefault();
+                            sections.forEach(s => s.classList.remove("active"));
+                            tabs.forEach(t => t.classList.remove("active"));
+                            tab.classList.add("active");
+                            const target = tab.getAttribute("href").substring(1);
+                            document.getElementById(`${target}-page`).classList.add("active");
+                        });
+                    });
                 }
 
-                this.productForm.reset();
-                this.productModal.style.display = "none";
-                this.currentEditProductId = null;
-                document.getElementById("productModalTitle").innerText = "Add Product";
-                await this.renderProducts();
-                await this.updateDashboardStats();
-                await this.populateOrderProducts();
-            } catch (err) {
-                console.error("❌ Error adding/updating product:", err.message, err.stack);
-                this.showMessage("Error", `Failed to add/update product: ${err.message}`, "error");
-            }
-        }
+                // Bind UI events
+                bindUI() {
+                    if (this.addProductBtn && this.productModal) {
+                        this.addProductBtn.addEventListener("click", () => {
+                            this.productForm.reset();
+                            this.currentEditProductId = null;
+                            document.getElementById("productModalTitle").innerText = "Add Product";
+                            this.toggleCustomDetails(false);
+                            document.getElementById("imagePreview").style.display = "none";
+                            this.productModal.style.display = "flex";
+                        });
+                    }
 
-        // Add or update an order
-        async addOrder(e) {
-            e.preventDefault();
-            const formData = new FormData(this.orderForm);
-            const orderData = Object.fromEntries(formData.entries());
+                    if (this.addOrderBtn && this.orderModal) {
+                        this.addOrderBtn.addEventListener("click", () => {
+                            this.orderForm.reset();
+                            this.currentEditOrderId = null;
+                            document.getElementById("orderModalTitle").innerText = "Add Order";
+                            this.toggleCustomOrderDetails(false);
+                            Array.from(this.orderProductsSelect.options).forEach(option => option.selected = false);
+                            this.orderModal.style.display = "flex";
+                        });
+                    }
 
-            // Explicitly collect selected products from the multiple select
-            const productSelect = document.getElementById("orderProducts");
-            const selectedProducts = Array.from(productSelect.selectedOptions).map(option => parseInt(option.value));
+                    document.querySelectorAll(".close-modal").forEach(btn => {
+                        btn.addEventListener("click", () => {
+                            btn.closest(".modal").style.display = "none";
+                            this.productForm.reset();
+                            this.orderForm.reset();
+                            this.currentEditProductId = null;
+                            this.currentEditOrderId = null;
+                            document.getElementById("productModalTitle").innerText = "Add Product";
+                            document.getElementById("orderModalTitle").innerText = "Add Order";
+                            this.toggleCustomDetails(false);
+                            this.toggleCustomOrderDetails(false);
+                            Array.from(this.orderProductsSelect.options).forEach(option => option.selected = false);
+                        });
+                    });
 
-            const order = {
-                customer: orderData.orderCustomer?.trim() || null,
-                phone: orderData.orderPhone?.trim() || null,
-                instagram: orderData.orderInstagram?.trim() || null,
-                products: selectedProducts.length > 0 ? selectedProducts : null,
-                deposit: orderData.orderDeposit ? parseFloat(orderData.orderDeposit) : null,
-                status: orderData.orderStatus || null,
-                custom_details: orderData.customOrderDetails?.trim() || null
-            };
+                    if (this.productForm) this.productForm.addEventListener("submit", (e) => this.addProduct(e));
+                    if (this.orderForm) this.orderForm.addEventListener("submit", (e) => this.addOrder(e));
 
-            // Validate required fields
-            if (!order.customer || !order.phone || !order.deposit || !order.status) {
-                this.showMessage("Error", "Please fill all required fields (Customer Name, Phone Number, Deposit, Status)", "error");
-                return;
-            }
-            if (!order.products && !order.custom_details) {
-                this.showMessage("Error", "Please select at least one product or enter custom details", "error");
-                return;
-            }
+                    // Control custom details visibility
+                    if (this.productCategorySelect) {
+                        this.productCategorySelect.addEventListener("change", () => {
+                            this.toggleCustomDetails(this.productCategorySelect.value === "custom");
+                        });
+                    }
 
-            try {
-                let response;
-                if (this.currentEditOrderId) {
-                    response = await supabase.from("orders").update(order).eq("id", this.currentEditOrderId).select();
-                } else {
-                    response = await supabase.from("orders").insert([order]).select();
-                }
-
-                const { data, error } = response;
-                if (error) {
-                    console.error("❌ Supabase error in addOrder:", error.message, error.details, error.hint);
-                    throw error;
-                }
-
-                console.log("Order saved successfully:", data);
-
-                this.showMessage("Success", this.currentEditOrderId ? "Order updated successfully!" : "Order added successfully!", "success");
-                this.orderForm.reset();
-                this.orderModal.style.display = "none";
-                this.currentEditOrderId = null;
-                document.getElementById("orderModalTitle").innerText = "Add Order";
-                this.toggleCustomOrderDetails(false);
-                Array.from(this.orderProductsSelect.options).forEach(option => option.selected = false);
-
-                // Force re-render orders
-                await this.renderOrders();
-                await this.updateDashboardStats();
-            } catch (err) {
-                console.error("❌ Error adding/updating order:", err.message, err.stack);
-                this.showMessage("Error", `Failed to add/update order: ${err.message}. Please check your Supabase permissions or data format.`, "error");
-            }
-        }
-
-        // Edit a product
-        async editProduct(id) {
-            try {
-                const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
-                if (error) throw error;
-
-                this.currentEditProductId = id;
-                document.getElementById("productModalTitle").innerText = "Edit Product";
-                this.productModal.style.display = "flex";
-
-                document.getElementById("productName").value = data.name || "";
-                document.getElementById("productPrice").value = data.price || "";
-                document.getElementById("productMaterial").value = data.material || "";
-                document.getElementById("productCategory").value = data.category || "";
-                document.getElementById("productQuantity").value = data.quantity || "";
-                document.getElementById("productDeposit").value = data.deposit || "";
-                document.getElementById("customDetails").value = data.custom_details || "";
-                document.getElementById("productImageUrl").value = data.image_url || "";
-                document.getElementById("productNotes").value = data.notes || "";
-                document.getElementById("imagePreview").src = data.image_url || "";
-                document.getElementById("imagePreview").style.display = data.image_url ? "block" : "none";
-
-                this.toggleCustomDetails(data.category === "custom");
-            } catch (err) {
-                console.error("❌ Error fetching product for edit:", err.message, err.stack);
-                this.showMessage("Error", `Failed to load product: ${err.message}`, "error");
-            }
-        }
-
-        // Edit an order
-        async editOrder(id) {
-            try {
-                const { data, error } = await supabase.from("orders").select("*").eq("id", id).single();
-                if (error) throw error;
-
-                this.currentEditOrderId = id;
-                document.getElementById("orderModalTitle").innerText = "Edit Order";
-                this.orderModal.style.display = "flex";
-
-                document.getElementById("orderCustomer").value = data.customer || "";
-                document.getElementById("orderPhone").value = data.phone || "";
-                document.getElementById("orderInstagram").value = data.instagram || "";
-                document.getElementById("orderDeposit").value = data.deposit || "";
-                document.getElementById("orderStatus").value = data.status || "";
-                document.getElementById("customOrderDetails").value = data.custom_details || "";
-
-                const productSelect = document.getElementById("orderProducts");
-                Array.from(productSelect.options).forEach(option => {
-                    option.selected = data.products?.includes(parseInt(option.value)) || false;
-                });
-
-                this.toggleCustomOrderDetails(data.custom_details ? true : false);
-            } catch (err) {
-                console.error("❌ Error fetching order for edit:", err.message, err.stack);
-                this.showMessage("Error", `Failed to load order: ${err.message}`, "error");
-            }
-        }
-
-        // Delete a product
-        async deleteProduct(id) {
-            if (!confirm("Are you sure you want to delete this product?")) return;
-            try {
-                const { error } = await supabase.from("products").delete().eq("id", id);
-                if (error) throw error;
-                await this.renderProducts();
-                await this.updateDashboardStats();
-                await this.populateOrderProducts();
-                this.showMessage("Success", "Product deleted successfully!", "success");
-            } catch (err) {
-                console.error("❌ Error deleting product:", err.message, err.stack);
-                this.showMessage("Error", `Failed to delete product: ${err.message}`, "error");
-            }
-        }
-
-        // Delete an order
-        async deleteOrder(id) {
-            if (!confirm("Are you sure you want to delete this order?")) return;
-            try {
-                const { error } = await supabase.from("orders").delete().eq("id", id);
-                if (error) throw error;
-                await this.renderOrders();
-                await this.updateDashboardStats();
-                this.showMessage("Success", "Order deleted successfully!", "success");
-            } catch (err) {
-                console.error("❌ Error deleting order:", err.message, err.stack);
-                this.showMessage("Error", `Failed to delete order: ${err.message}`, "error");
-            }
-        }
-
-        // Show message modal
-        showMessage(title, text, type) {
-            const messageModal = document.getElementById("messageModal");
-            const messageTitle = document.getElementById("messageTitle");
-            const messageText = document.getElementById("messageText");
-            messageTitle.innerHTML = `<i class="fas ${type === "success" ? "fa-check-circle" : "fa-times-circle"}"></i> ${title}`;
-            messageText.innerText = text;
-            messageModal.style.display = "flex";
-        }
-
-        // Toggle custom details visibility
-        toggleCustomDetails(show) {
-            this.customDetailsGroup.style.display = show ? "block" : "none";
-        }
-
-        toggleCustomOrderDetails(show) {
-            this.customOrderDetailsGroup.style.display = show ? "block" : "none";
-        }
-
-        // Setup product filters
-        setupFilters() {
-            const filters = document.querySelectorAll(".category-btn");
-            filters.forEach(btn => {
-                btn.addEventListener("click", () => {
-                    filters.forEach(b => b.classList.remove("active"));
-                    btn.classList.add("active");
-                    const category = btn.getAttribute("data-category");
-                    document.querySelectorAll(".product-card").forEach(card => {
-                        const cardCategory = card.querySelector(".detail-value")?.innerText.toLowerCase();
-                        if (category === "all" || cardCategory === category) {
-                            card.style.display = "block";
-                        } else {
-                            card.style.display = "none";
+                    // Handle edit and delete buttons
+                    document.addEventListener("click", (e) => {
+                        if (e.target.closest(".edit-btn")) {
+                            const id = e.target.closest(".edit-btn").dataset.id;
+                            const parent = e.target.closest(".product-card") ? "products" : "orders";
+                            if (parent === "products") {
+                                this.editProduct(id);
+                            } else {
+                                this.editOrder(id);
+                            }
+                        }
+                        if (e.target.closest(".delete-btn")) {
+                            const id = e.target.closest(".delete-btn").dataset.id;
+                            const parent = e.target.closest(".product-card") ? "products" : "orders";
+                            if (parent === "products") {
+                                this.deleteProduct(id);
+                            } else {
+                                this.deleteOrder(id);
+                            }
                         }
                     });
-                });
-            });
-        }
+                }
 
-        // Setup product search
-        setupSearch() {
-            if (this.productSearch) {
-                this.productSearch.addEventListener("input", () => {
-                    const query = this.productSearch.value.trim();
-                    this.renderProducts(query);
-                });
-            }
-        }
+                // Setup real-time subscriptions
+                setupRealtime() {
+                    supabase.channel("products-changes")
+                        .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+                            this.renderProducts();
+                            this.updateDashboardStats();
+                            this.populateOrderProducts();
+                        }).subscribe();
 
-        // Setup navigation
-        setupNavigation() {
-            const tabs = document.querySelectorAll("nav ul li a");
-            const sections = document.querySelectorAll(".page-content");
-            tabs.forEach(tab => {
-                tab.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    sections.forEach(s => s.classList.remove("active"));
-                    tabs.forEach(t => t.classList.remove("active"));
-                    tab.classList.add("active");
-                    const target = tab.getAttribute("href").substring(1);
-                    document.getElementById(`${target}-page`).classList.add("active");
-                });
-            });
-        }
+                    supabase.channel("orders-changes")
+                        .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
+                            setTimeout(() => this.renderOrders(), 500); // Add slight delay for replication
+                            this.updateDashboardStats();
+                        }).subscribe();
+                }
 
-        // Bind UI events
-        bindUI() {
-            if (this.addProductBtn && this.productModal) {
-                this.addProductBtn.addEventListener("click", () => {
-                    this.productForm.reset();
-                    this.currentEditProductId = null;
-                    document.getElementById("productModalTitle").innerText = "Add Product";
-                    this.toggleCustomDetails(false);
-                    document.getElementById("imagePreview").style.display = "none";
-                    this.productModal.style.display = "flex";
-                });
-            }
+                // Initialize the system
+                async init() {
+                    try {
+                        // Test Supabase connection
+                        const { data, error } = await supabase.from("products").select("*").limit(1);
+                        if (error) {
+                            console.error("❌ Supabase connection test failed:", error.message, error.stack);
+                            this.showMessage("Error", "Cannot connect to Supabase. Please check your URL, anon key, or table permissions.", "error");
+                            return;
+                        }
 
-            if (this.addOrderBtn && this.orderModal) {
-                this.addOrderBtn.addEventListener("click", () => {
-                    this.orderForm.reset();
-                    this.currentEditOrderId = null;
-                    document.getElementById("orderModalTitle").innerText = "Add Order";
-                    this.toggleCustomOrderDetails(false);
-                    Array.from(this.orderProductsSelect.options).forEach(option => option.selected = false);
-                    this.orderModal.style.display = "flex";
-                });
-            }
+                        // Initialize containers
+                        if (!this.productsContainer || !this.ordersContainer) {
+                            console.error("❌ Missing DOM containers: productsContainer or ordersContainer not found");
+                            this.showMessage("Error", "Page elements are missing. Please check your HTML structure.", "error");
+                            return;
+                        }
 
-            document.querySelectorAll(".close-modal").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    btn.closest(".modal").style.display = "none";
-                    this.productForm.reset();
-                    this.orderForm.reset();
-                    this.currentEditProductId = null;
-                    this.currentEditOrderId = null;
-                    document.getElementById("productModalTitle").innerText = "Add Product";
-                    document.getElementById("orderModalTitle").innerText = "Add Order";
-                    this.toggleCustomDetails(false);
-                    this.toggleCustomOrderDetails(false);
-                    Array.from(this.orderProductsSelect.options).forEach(option => option.selected = false);
-                });
-            });
-
-            if (this.productForm) this.productForm.addEventListener("submit", (e) => this.addProduct(e));
-            if (this.orderForm) this.orderForm.addEventListener("submit", (e) => this.addOrder(e));
-
-            // Control custom details visibility
-            if (this.productCategorySelect) {
-                this.productCategorySelect.addEventListener("change", () => {
-                    this.toggleCustomDetails(this.productCategorySelect.value === "custom");
-                });
-            }
-
-            // Handle edit and delete buttons
-            document.addEventListener("click", (e) => {
-                if (e.target.closest(".edit-btn")) {
-                    const id = e.target.closest(".edit-btn").dataset.id;
-                    const parent = e.target.closest(".product-card") ? "products" : "orders";
-                    if (parent === "products") {
-                        this.editProduct(id);
-                    } else {
-                        this.editOrder(id);
+                        // Run initializations without showing popup unless critical
+                        await Promise.all([
+                            this.renderProducts().catch(err => console.error("Initial products render failed:", err)),
+                            this.renderOrders().catch(err => console.error("Initial orders render failed:", err)),
+                            this.updateDashboardStats().catch(err => console.error("Initial dashboard update failed:", err)),
+                            this.populateOrderProducts().catch(err => console.error("Initial products populate failed:", err))
+                        ]);
+                        this.setupRealtime();
+                        this.bindUI();
+                        this.setupNavigation();
+                        this.setupFilters();
+                        this.setupSearch();
+                    } catch (err) {
+                        console.error("❌ Critical error initializing system:", err.message, err.stack);
                     }
                 }
-                if (e.target.closest(".delete-btn")) {
-                    const id = e.target.closest(".delete-btn").dataset.id;
-                    const parent = e.target.closest(".product-card") ? "products" : "orders";
-                    if (parent === "products") {
-                        this.deleteProduct(id);
-                    } else {
-                        this.deleteOrder(id);
-                    }
-                }
-            });
-        }
-
-        // Setup real-time subscriptions
-        setupRealtime() {
-            supabase.channel("products-changes")
-                .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
-                    this.renderProducts();
-                    this.updateDashboardStats();
-                    this.populateOrderProducts();
-                }).subscribe();
-
-            supabase.channel("orders-changes")
-                .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
-                    setTimeout(() => this.renderOrders(), 500); // Add slight delay for replication
-                    this.updateDashboardStats();
-                }).subscribe();
-        }
-
-        // Initialize the system
-        async init() {
-            try {
-                // Run initializations without showing error popups unless necessary
-                await Promise.all([
-                    this.renderProducts().catch(err => console.error("Initial products render failed:", err)),
-                    this.renderOrders().catch(err => console.error("Initial orders render failed:", err)),
-                    this.updateDashboardStats().catch(err => console.error("Initial dashboard update failed:", err)),
-                    this.populateOrderProducts().catch(err => console.error("Initial products populate failed:", err))
-                ]);
-                this.setupRealtime();
-                this.bindUI();
-                this.setupNavigation();
-                this.setupFilters();
-                this.setupSearch();
-            } catch (err) {
-                console.error("❌ Error initializing system:", err.message, err.stack);
-                // Only show critical initialization errors
-                this.showMessage("Error", "Failed to initialize the system. Please check your Supabase configuration.", "error");
             }
-        }
-    }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const system = new ManagementSystem();
-        system.init();
-    });
+            document.addEventListener("DOMContentLoaded", () => {
+                const system = new ManagementSystem();
+                system.init();
+            });
 </script>
 </body>
 </html>
+
 
 
