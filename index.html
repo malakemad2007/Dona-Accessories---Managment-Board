@@ -1558,6 +1558,7 @@
                     }).subscribe();
             }
 
+
             // بدء النظام
             async init() {
                 await this.renderProducts();
@@ -1572,11 +1573,23 @@
             }
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const system = new ManagementSystem();
-            system.init();
-        });
+document.addEventListener("DOMContentLoaded", async () => {
+    const system = new ManagementSystem();
+    system.bindUI();
+    system.setupFilters();
+    system.setupSearch();
+    system.setupNavigation();
+    system.setupRealtime();
+
+    await system.renderProducts();
+    await system.renderOrders();
+    await system.updateDashboardStats();
+    await system.populateOrderProducts();
+});
+        
+
     </script>
 </body>
 </html>
+
 
