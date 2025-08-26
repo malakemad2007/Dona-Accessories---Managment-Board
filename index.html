@@ -1069,57 +1069,77 @@
 
             // جلب الطلبات مع رقم تسلسلي
             async renderOrders() {
-                try {
-                    const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: true });
-                    if (error) throw error;
+    try {
+        console.log("Fetching orders from Supabase...");
+        const { data, error } = await supabase.from("orders").select("*").order("id", { ascending: true });
+        if (error) {
+            console.error("❌ Supabase error:", error.message);
+            throw error;
+        }
 
-                    if (!this.ordersContainer) return;
-                    this.ordersContainer.innerHTML = "";
+        console.log("Orders fetched:", data);
 
-                    // جلب أسماء المنتجات بناءً على المعرفات
-                    const productIds = [...new Set(data.flatMap(order => order.products || []))];
-                    const { data: productsData, error: productsError } = await supabase
-                        .from("products")
-                        .select("id, name")
-                        .in("id", productIds);
-                    if (productsError) throw productsError;
+        if (!this.ordersContainer) {
+            console.error("❌ Orders container not found");
+            return;
+        }
+        this.ordersContainer.innerHTML = "";
 
-                    const productMap = productsData.reduce((map, product) => {
-                        map[product.id] = product.name;
-                        return map;
-                    }, {});
+        // جلب أسماء المنتجات بناءً على المعرفات
+        const productIds = [...new Set(data.flatMap(order => order.products || []))];
+        const { data: productsData, error: productsError } = await supabase
+            .from("products")
+            .select("id, name")
+            .in("id", productIds);
+        if (productsError) {
+            console.error("❌ Products error:", productsError.message);
+            throw productsError;
+        }
 
-                    data.forEach((order, index) => {
-                        const serialNumber = index + 1;
-                        const productNames = order.products?.map(id => productMap[id] || "Unknown Product") || [];
-                        const div = document.createElement("div");
-                        div.className = "order-card";
-                        div.style.setProperty('--index', index);
-                        div.innerHTML = `
-                            <div class="order-info">
-                                <h3 class="order-id">Order #${serialNumber}</h3>
-                                <div class="order-details">
-                                    <div class="order-item"><span class="order-label">Customer:</span> <span class="order-value">${order.customer || "N/A"}</span></div>
-                                    <div class="order-item"><span class="order-label">Phone:</span> <span class="order-value">${order.phone || "N/A"}</span></div>
-                                    <div class="order-item"><span class="order-label">Instagram:</span> <span class="order-value">${order.instagram || "N/A"}</span></div>
-                                    <div class="order-item"><span class="order-label">Products:</span> <span class="order-value">${productNames.join(", ") || "N/A"}</span></div>
-                                    <div class="order-item"><span class="order-label">Status:</span> <span class="order-value status-${order.status || "deposit"}">${order.status || "Awaiting Deposit"}</span></div>
-                                    <div class="order-item"><span class="order-label">Deposit:</span> <span class="order-value">EGP ${order.deposit || 0}</span></div>
-                                    ${order.custom_details ? `<div class="custom-details">${order.custom_details}</div>` : ""}
-                                </div>
-                                <div class="actions-container">
-                                    <button class="edit-btn" data-id="${order.id}"><i class="fas fa-edit"></i> Edit</button>
-                                    <button class="delete-btn" data-id="${order.id}"><i class="fas fa-trash"></i> Delete</button>
-                                </div>
-                            </div>
-                        `;
-                        this.ordersContainer.appendChild(div);
-                    });
-                } catch (err) {
-                    console.error("❌ Error fetching orders:", err.message);
-                    this.showMessage("Error", `Failed to fetch orders: ${err.message}`, "error");
-                }
-            }
+        console.log("Products fetched:", productsData);
+
+        const productMap = productsData.reduce((map, product) => {
+            map[product.id] = product.name;
+            return map;
+        }, {});
+
+        if (data.length === 0) {
+            this.ordersContainer.innerHTML = "<p>No orders found.</p>";
+            return;
+        }
+
+        data.forEach((order, index) => {
+            const serialNumber = index + 1;
+            const productNames = order.products?.map(id => productMap[id] || "Unknown Product") || [];
+            const div = document.createElement("div");
+            div.className = "order-card";
+            div.style.setProperty('--index', index);
+            div.innerHTML = `
+                <div class="order-info">
+                    <h3 class="order-id">Order #${serialNumber}</h3>
+                    <div class="order-details">
+                        <div class="order-item"><span class="order-label">Customer:</span> <span class="order-value">${order.customer || "N/A"}</span></div>
+                        <div class="order-item"><span class="order-label">Phone:</span> <span class="order-value">${order.phone || "N/A"}</span></div>
+                        <div class="order-item"><span class="order-label">Instagram:</span> <span class="order-value">${order.instagram || "N/A"}</span></div>
+                        <div class="order-item"><span class="order-label">Products:</span> <span class="order-value">${productNames.join(", ") || "N/A"}</span></div>
+                        <div class="order-item"><span class="order-label">Status:</span> <span class="order-value status-${order.status || "deposit"}">${order.status || "Awaiting Deposit"}</span></div>
+                        <div class="order-item"><span class="order-label">Deposit:</span> <span class="order-value">EGP ${order.deposit || 0}</span></div>
+                        ${order.custom_details ? `<div class="custom-details">${order.custom_details}</div>` : ""}
+                    </div>
+                    <div class="actions-container">
+                        <button class="edit-btn" data-id="${order.id}"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="delete-btn" data-id="${order.id}"><i class="fas fa-trash"></i> Delete</button>
+                    </div>
+                </div>
+            `;
+            this.ordersContainer.appendChild(div);
+        });
+        console.log("Orders rendered successfully");
+    } catch (err) {
+        console.error("❌ Error rendering orders:", err.message);
+        this.showMessage("Error", `Failed to fetch orders: ${err.message}`, "error");
+    }
+}
 
             // تحديث Dashboard
             async updateDashboardStats() {
@@ -1559,3 +1579,4 @@
     </script>
 </body>
 </html>
+
