@@ -422,6 +422,11 @@
             color: var(--pure-white);
         }
 
+
+.modal {
+  display: none; /* مقفول أول ما الصفحة تفتح */
+}
+
         .modal {
             display: none;
             position: fixed;
@@ -1073,6 +1078,40 @@
     });
   }
 
+
+// ========== MODAL HANDLING ==========
+function openModal(id) {
+  document.getElementById(id).style.display = "block";
+}
+
+function closeModal(id) {
+  document.getElementById(id).style.display = "none";
+}
+
+// زرار فتح المودال بتاع المنتج
+document.getElementById("add-product-btn").addEventListener("click", () => {
+  openModal("productModal");
+});
+
+// زرار فتح المودال بتاع الأوردر
+document.getElementById("add-order-btn").addEventListener("click", () => {
+  openModal("orderModal");
+});
+
+// أي زرار قفل جوا المودال
+document.querySelectorAll(".close-modal").forEach(btn => {
+  btn.addEventListener("click", e => {
+    closeModal(e.target.closest(".modal").id);
+  });
+});
+
+// لو المستخدم دوس برة المودال
+window.addEventListener("click", e => {
+  if (e.target.classList.contains("modal")) {
+    closeModal(e.target.id);
+  }
+});
+
   // === Add Product Form ===
   document.getElementById("productForm").addEventListener("submit", async e => {
     e.preventDefault();
@@ -1128,6 +1167,7 @@
     </script>
 </body>
 </html>
+
 
 
 
