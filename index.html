@@ -932,71 +932,81 @@ textarea:focus {
     </div>
 
     <div class="modal" id="orderModal" role="dialog" aria-labelledby="orderModalTitle" aria-hidden="true">
-        <div class="modal-content">
-            <span class="close-modal" aria-label="Close modal">&times;</span>
-            <h2 class="modal-title" id="orderModalTitle">Add Order</h2>
-            <form id="orderForm" novalidate>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="orderCustomer">Customer Name</label>
-                        <input type="text" id="orderCustomer" name="orderCustomer" required aria-required="true" placeholder="Enter customer name">
-                        <span class="error-message" id="orderCustomerError">Customer name is required</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderPhone">Phone Number</label>
-                        <input type="tel" id="orderPhone" name="orderPhone" required aria-required="true" placeholder="Enter phone number">
-                        <span class="error-message" id="orderPhoneError">Please enter a valid phone number</span>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="orderInstagram">Instagram Handle</label>
-                        <input type="text" id="orderInstagram" name="orderInstagram" placeholder="Enter Instagram handle (optional)" aria-describedby="orderInstagramHelp">
-                        <span class="error-message" id="orderInstagramError">Please enter a valid Instagram handle</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderProducts">Products</label>
-                        <select id="orderProducts" name="orderProducts" multiple aria-required="true"></select>
-                        <span class="error-message" id="orderProductsError">At least one product is required</span>
-                    </div>
-                </div>
-                <div id="customOrderDetailsGroup" style="display: none;">
-                    <div class="form-group">
-                        <label for="customOrderDetails">Custom Order Details</label>
-                        <textarea id="customOrderDetails" name="customOrderDetails" placeholder="Enter custom order details" aria-describedby="customOrderDetailsHelp"></textarea>
-                        <span class="error-message" id="customOrderDetailsError">Custom details are required for custom products</span>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="orderDeposit">Total Deposit (EGP)</label>
-                        <input type="number" id="orderDeposit" name="orderDeposit" required aria-required="true" min="0" step="0.01" placeholder="Enter total deposit amount">
-                        <span class="error-message" id="orderDepositError">Please enter a valid deposit amount</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="orderStatus">Status</label>
-                        <select id="orderStatus" name="orderStatus" required aria-required="true">
-                            <option value="" disabled selected>Select status</option>
-                            <option value="progress">In Progress</option>
-                            <option value="delivering">Delivering</option>
-                            <option value="delivered">Delivered</option>
-                            <option value="deposit">Awaiting Deposit</option>
-                        </select>
-                        <span class="error-message" id="orderStatusError">Status is required</span>
-                    </div>
-                </div>
-                <button type="submit" class="save-btn">Save Order</button>
-            </form>
+  <div class="modal-content">
+    <span class="close-modal" aria-label="Close modal">&times;</span>
+    <h2 class="modal-title" id="orderModalTitle">Add Order</h2>
+    <form id="orderForm" novalidate>
+      
+      <!-- Customer Info -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="orderCustomer">Customer Name</label>
+          <input type="text" id="orderCustomer" name="orderCustomer" required placeholder="Enter customer name">
+          <span class="error-message" id="orderCustomerError">Customer name is required</span>
+        </div>
+        <div class="form-group">
+          <label for="orderPhone">Phone Number</label>
+          <input type="tel" id="orderPhone" name="orderPhone" required placeholder="Enter phone number">
+          <span class="error-message" id="orderPhoneError">Please enter a valid phone number</span>
+        </div>
+      </div>
+
+      <!-- Social + Products -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="orderInstagram">Instagram Handle</label>
+          <input type="text" id="orderInstagram" name="orderInstagram" placeholder="Enter Instagram handle (optional)">
+          <span class="error-message" id="orderInstagramError">Please enter a valid Instagram handle</span>
+        </div>
+        <div class="form-group">
+          <label for="orderProducts">Products</label>
+          <select id="orderProducts" name="orderProducts" multiple required></select>
+          <span class="error-message" id="orderProductsError">At least one product is required</span>
+        </div>
+      </div>
+
+      <!-- Custom Order -->
+      <div id="customDetails" style="display: none;">
+        <div class="form-group">
+          <label for="customOrder">Custom Order Details</label>
+          <textarea id="customOrder" name="customOrder" placeholder="Enter custom order details"></textarea>
+          <span class="error-message" id="customOrderDetailsError">Custom details are required for custom products</span>
+        </div>
+      </div>
+
+      <!-- Deposit + Status -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="Deposit">Total Deposit (EGP)</label>
+          <input type="number" id="Deposit" name="Deposit" required min="0" step="0.01" placeholder="Enter total deposit amount">
+          <span class="error-message" id="DepositError">Please enter a valid deposit amount</span>
+        </div>
+        <div class="form-group">
+          <label for="Status">Status</label>
+          <select id="Status" name="Status" required>
+            <option value="" disabled selected>Select status</option>
+            <option value="progress">In Progress</option>
+            <option value="delivering">Delivering</option>
+            <option value="delivered">Delivered</option>
+            <option value="deposit">Awaiting Deposit</option>
+          </select>
+          <span class="error-message" id="StatusError">Status is required</span>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="save-btn">Save Order</button>
+    </form>
+  
+
         </div>
     </div>
-    <script>
-        
+<script>
 // === Supabase Configuration ===
 document.addEventListener("DOMContentLoaded", () => {
-  // Check if Supabase library is loaded
   if (typeof supabase === "undefined") {
-    console.error("Supabase library not loaded. Ensure the Supabase script is included and loaded correctly.");
-    showMessage("Error", "Failed to initialize Supabase. Please check the console for details.", "error");
+    console.error("Supabase library not loaded.");
+    showMessage("Error", "Failed to initialize Supabase.", "error");
     return;
   }
 
@@ -1005,499 +1015,58 @@ document.addEventListener("DOMContentLoaded", () => {
   const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
   console.log("Supabase client initialized");
 
-// === Utility: Open/Close Modal ===
-function openModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.style.display = "flex";
-    console.log(`Opened modal: ${modalId}`);
-  } else {
-    console.error(`Modal with ID ${modalId} not found`);
+  // === Utilities: Modals ===
+  function openModal(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) m.style.display = "flex";
   }
-}
-
-function closeModal(modalId) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    modal.style.display = "none";
-    console.log(`Closed modal: ${modalId}`);
-  } else {
-    console.error(`Modal with ID ${modalId} not found`);
+  function closeModal(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) m.style.display = "none";
   }
-}
-
-// Close modals with close button
-document.querySelectorAll(".close-modal").forEach(btn => {
-  btn.addEventListener("click", () => {
-    closeModal(btn.closest(".modal").id);
+  document.querySelectorAll(".close-modal").forEach(btn => {
+    btn.addEventListener("click", () => closeModal(btn.closest(".modal").id));
   });
-});
-
-// Close modals when clicking outside
-window.addEventListener("click", e => {
-  if (e.target.classList.contains("modal")) {
-    closeModal(e.target.id);
-  }
-});
-
-// === Render Products ===
-async function renderProducts() {
-  console.log("Fetching products...");
-  const { data, error } = await supabaseClient.from("products").select("*").order("id", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching products:", error);
-    showMessage("Error", "Failed to load products: " + error.message, "error");
-    return;
-  }
-
-  console.log("Products fetched:", data);
-
-  const grid = document.getElementById("products-grid");
-  if (!grid) {
-    console.error("Products grid element not found");
-    return;
-  }
-  grid.innerHTML = "";
-
-  if (data.length === 0) {
-    grid.innerHTML = "<p>No products found. Add a product to get started!</p>";
-    return;
-  }
-
-  data.forEach((prod, index) => {
-    const card = document.createElement("div");
-    card.classList.add("product-card");
-    card.style.setProperty("--index", index);
-
-    card.innerHTML = `
-      <div class="product-image" style="background-image: url('${prod.image_url || 'https://via.placeholder.com/150'}');"></div>
-      <div class="product-info">
-        <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
-        <p class="product-price">EGP ${prod.price || 0}</p>
-        <div class="product-details">
-          <div class="detail-item">
-            <span class="detail-label">Material:</span>
-            <span class="detail-value">${prod.material || "N/A"}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Category:</span>
-            <span class="detail-value">${prod.category || "N/A"}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Quantity:</span>
-            <span class="detail-value">${prod.quantity || "N/A"}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Deposit:</span>
-            <span class="detail-value">EGP ${prod.deposit || 0}</span>
-          </div>
-        </div>
-        ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
-        <div class="actions-container">
-          <button class="edit-btn" data-id="${prod.id}"><i class="fas fa-edit"></i> Edit</button>
-          <button class="delete-btn" data-id="${prod.id}"><i class="fas fa-trash"></i> Delete</button>
-        </div>
-      </div>
-    `;
-
-    grid.appendChild(card);
-  });
-
-  // Attach event listeners to edit and delete buttons
-  document.querySelectorAll(".edit-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const productId = btn.dataset.id;
-      showMessage("Info", `Edit functionality for product ID ${productId} not implemented yet.`, "success");
-    });
-  });
-
-  document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const productId = btn.dataset.id;
-      if (confirm(`Are you sure you want to delete product ID ${productId}?`)) {
-        const { error } = await supabaseClient.from("products").delete().eq("id", productId);
-        if (error) {
-          showMessage("Error", "Failed to delete product: " + error.message, "error");
-        } else {
-          showMessage("Success", "Product deleted successfully!");
-          renderProducts();
-        }
-      }
-    });
-  });
-}
-
-// === Render Orders ===
-async function renderOrders() {
-  console.log("Fetching orders...");
-  const { data, error } = await supabaseClient.from("orders").select("*").order("id", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching orders:", error);
-    showMessage("Error", "Failed to load orders: " + error.message, "error");
-    return;
-  }
-
-  console.log("Orders fetched:", data);
-
-  const grid = document.getElementById("orders-grid");
-  if (!grid) {
-    console.error("Orders grid element not found");
-    return;
-  }
-  grid.innerHTML = "";
-
-  if (data.length === 0) {
-    grid.innerHTML = "<p>No orders found. Add an order to get started!</p>";
-    return;
-  }
-
-  data.forEach((order, index) => {
-    const card = document.createElement("div");
-    card.classList.add("order-card");
-    card.style.setProperty("--index", index);
-
-    const statusClass = {
-      progress: "status-progress",
-      delivering: "status-delivering",
-      delivered: "status-delivered",
-      deposit: "status-deposit"
-    }[order.status] || "status-deposit";
-
-    card.innerHTML = `
-      <div class="order-image" style="background-image: url('https://via.placeholder.com/150');"></div>
-      <div class="order-info">
-        <h3 class="order-id">Order #${order.id}</h3>
-        <div class="order-details">
-          <div class="order-item">
-            <span class="order-label">Customer:</span>
-            <span class="order-value">${order.customer || "N/A"}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-label">Phone:</span>
-            <span class="order-value">${order.phone || "N/A"}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-label">Products:</span>
-            <span class="order-value">${order.products || "N/A"}</span>
-          </div>
-          <div class="order-item">
-            <span class="order-label">Deposit:</span>
-            <span class="order-value">EGP ${order.deposit || 0}</span>
-          </div>
-        </div>
-        <span class="${statusClass}">${order.status || "Pending"}</span>
-        ${order.custom_details ? `<div class="custom-details">${order.custom_details}</div>` : ""}
-        <div class="actions-container">
-          <button class="edit-btn" data-id="${order.id}"><i class="fas fa-edit"></i> Edit</button>
-          <button class="delete-btn" data-id="${order.id}"><i class="fas fa-trash"></i> Delete</button>
-        </div>
-      </div>
-    `;
-
-    grid.appendChild(card);
-  });
-
-  // Attach event listeners to order edit and delete buttons
-  document.querySelectorAll(".order-card .edit-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const orderId = btn.dataset.id;
-      showMessage("Info", `Edit functionality for order ID ${orderId} not implemented yet.`, "success");
-    });
-  });
-
-  document.querySelectorAll(".order-card .delete-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const orderId = btn.dataset.id;
-      if (confirm(`Are you sure you want to delete order ID ${orderId}?`)) {
-        const { error } = await supabaseClient.from("orders").delete().eq("id", orderId);
-        if (error) {
-          showMessage("Error", "Failed to delete order: " + error.message, "error");
-        } else {
-          showMessage("Success", "Order deleted successfully!");
-          renderOrders();
-        }
-      }
-    });
-  });
-}
-
-// === Show Message Modal ===
-function showMessage(title, message, type = "success") {
-  const modal = document.getElementById("messageModal");
-  const titleElement = document.getElementById("messageTitle");
-  const textElement = document.getElementById("messageText");
-
-  titleElement.textContent = title;
-  textElement.textContent = message;
-  titleElement.style.color = type === "success" ? "var(--success)" : "var(--error)";
-  openModal("messageModal");
-
-  setTimeout(() => closeModal("messageModal"), 3000);
-}
-
-// === Add Product Form ===
-document.getElementById("productForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const form = e.target;
-  const saveBtn = form.querySelector(".save-btn");
-  saveBtn.disabled = true;
-  saveBtn.classList.add("loading");
-
-  // Validate inputs
-  const name = document.getElementById("productName").value.trim();
-  const price = parseFloat(document.getElementById("productPrice").value);
-  const material = document.getElementById("productMaterial").value;
-  const category = document.getElementById("productCategory").value;
-  const quantity = document.getElementById("productQuantity").value.trim();
-  const deposit = parseFloat(document.getElementById("productDeposit").value);
-  const customDetails = document.getElementById("customDetails").value.trim();
-  const imageUrl = document.getElementById("productImageUrl").value.trim();
-  const notes = document.getElementById("productNotes").value.trim();
-
-  // Basic validation
-  let hasError = false;
-  if (!name) {
-    document.getElementById("productNameError").style.display = "block";
-    hasError = true;
-  }
-  if (!price || price < 0) {
-    document.getElementById("productPriceError").style.display = "block";
-    hasError = true;
-  }
-  if (!material) {
-    document.getElementById("productMaterialError").style.display = "block";
-    hasError = true;
-  }
-  if (!category) {
-    document.getElementById("productCategoryError").style.display = "block";
-    hasError = true;
-  }
-  if (!quantity) {
-    document.getElementById("productQuantityError").style.display = "block";
-    hasError = true;
-  }
-  if (!deposit || deposit < 0) {
-    document.getElementById("productDepositError").style.display = "block";
-    hasError = true;
-  }
-  if (category === "custom" && !customDetails) {
-    document.getElementById("customDetailsError").style.display = "block";
-    hasError = true;
-  }
-
-  if (hasError) {
-    saveBtn.disabled = false;
-    saveBtn.classList.remove("loading");
-    return;
-  }
-
-  const productData = {
-    name,
-    price,
-    material,
-    category,
-    quantity,
-    deposit,
-    custom_details: customDetails || null,
-    image_url: imageUrl || null,
-    notes: notes || null
-  };
-
-  const { error } = await supabaseClient.from("products").insert([productData]);
-
-  saveBtn.disabled = false;
-  saveBtn.classList.remove("loading");
-
-  if (error) {
-    showMessage("Error", "Failed to add product: " + error.message, "error");
-  } else {
-    showMessage("Success", "Product added successfully!");
-    closeModal("productModal");
-    form.reset();
-    renderProducts();
-  }
-});
-
-// === Add Order Form ===
-document.getElementById("orderForm").addEventListener("submit", async e => {
-  e.preventDefault();
-  const form = e.target;
-  const saveBtn = form.querySelector(".save-btn");
-  saveBtn.disabled = true;
-  saveBtn.classList.add("loading");
-
-  // Validate inputs
-  const customer = document.getElementById("orderCustomer").value.trim();
-  const phone = document.getElementById("orderPhone").value.trim();
-  const instagram = document.getElementById("orderInstagram").value.trim();
-  const products = Array.from(document.getElementById("orderProducts").selectedOptions).map(opt => opt.value);
-  const customDetails = document.getElementById("customOrderDetails").value.trim();
-  const deposit = parseFloat(document.getElementById("orderDeposit").value);
-  const status = document.getElementById("orderStatus").value;
-
-  // Basic validation
-  let hasError = false;
-  if (!customer) {
-    document.getElementById("orderCustomerError").style.display = "block";
-    hasError = true;
-  }
-  if (!phone) {
-    document.getElementById("orderPhoneError").style.display = "block";
-    hasError = true;
-  }
-  if (products.length === 0) {
-    document.getElementById("orderProductsError").style.display = "block";
-    hasError = true;
-  }
-  if (!deposit || deposit < 0) {
-    document.getElementById("orderDepositError").style.display = "block";
-    hasError = true;
-  }
-  if (!status) {
-    document.getElementById("orderStatusError").style.display = "block";
-    hasError = true;
-  }
-  if (products.includes("custom") && !customDetails) {
-    document.getElementById("customOrderDetailsError").style.display = "block";
-    hasError = true;
-  }
-
-  if (hasError) {
-    saveBtn.disabled = false;
-    saveBtn.classList.remove("loading");
-    return;
-  }
-
-  const orderData = {
-    customer,
-    phone,
-    instagram: instagram || null,
-    products: products.join(", "),
-    custom_details: customDetails || null,
-    deposit,
-    status,
-    created_at: new Date().toISOString()
-  };
-
-  const { error } = await supabaseClient.from("orders").insert([orderData]);
-
-  saveBtn.disabled = false;
-  saveBtn.classList.remove("loading");
-
-  if (error) {
-    showMessage("Error", "Failed to add order: " + error.message, "error");
-  } else {
-    showMessage("Success", "Order added successfully!");
-    closeModal("orderModal");
-    form.reset();
-    renderOrders();
-  }
-});
-
-// === Populate Order Products Dropdown ===
-async function populateOrderProducts() {
-  console.log("Populating order products dropdown...");
-  const { data, error } = await supabaseClient.from("products").select("id, name");
-  if (error) {
-    console.error("Error fetching products for dropdown:", error);
-    showMessage("Error", "Failed to load products for dropdown: " + error.message, "error");
-    return;
-  }
-
-  console.log("Products for dropdown:", data);
-
-  const select = document.getElementById("orderProducts");
-  if (!select) {
-    console.error("Order products select element not found");
-    return;
-  }
-  select.innerHTML = "";
-  data.forEach(product => {
-    const option = document.createElement("option");
-    option.value = product.name;
-    option.textContent = product.name;
-    select.appendChild(option);
-  });
-}
-
-// === Toggle Custom Details Field ===
-document.getElementById("productCategory").addEventListener("change", e => {
-  const customDetailsGroup = document.getElementById("customDetailsGroup");
-  if (customDetailsGroup) {
-    customDetailsGroup.style.display = e.target.value === "custom" ? "block" : "none";
-  }
-});
-
-document.getElementById("orderProducts").addEventListener("change", () => {
-  const customDetailsGroup = document.getElementById("customOrderDetailsGroup");
-  if (customDetailsGroup) {
-    const selectedProducts = Array.from(document.getElementById("orderProducts").selectedOptions).map(opt => opt.value);
-    customDetailsGroup.style.display = selectedProducts.includes("custom") ? "block" : "none";
-  }
-});
-
-// === Clear Error Messages on Input ===
-document.querySelectorAll(".form-group input, .form-group select, .form-group textarea").forEach(input => {
-  input.addEventListener("input", () => {
-    const errorElement = document.getElementById(`${input.id}Error`);
-    if (errorElement) errorElement.style.display = "none";
-  });
-});
-
-// === Navigation Handling ===
-document.querySelectorAll("nav ul li a").forEach(link => {
-  link.addEventListener("click", e => {
-    e.preventDefault();
-    const targetPage = link.getAttribute("href").substring(1);
-    document.querySelectorAll(".page-content").forEach(page => {
-      page.classList.remove("active");
-    });
-    const targetPageElement = document.getElementById(`${targetPage}-page`);
-    if (targetPageElement) {
-      targetPageElement.classList.add("active");
-    } else {
-      console.error(`Page with ID ${targetPage}-page not found`);
+  window.addEventListener("click", e => {
+    if (e.target.classList && e.target.classList.contains("modal")) {
+      closeModal(e.target.id);
     }
-    document.querySelectorAll("nav ul li a").forEach(navLink => {
-      navLink.classList.remove("active");
-    });
-    link.classList.add("active");
   });
-});
 
-// === Category Filter ===
-document.querySelectorAll(".category-btn").forEach(btn => {
-  btn.addEventListener("click", async () => {
-    document.querySelectorAll(".category-btn").forEach(b => {
-      b.classList.remove("active");
-      b.setAttribute("aria-selected", "false");
-    });
-    btn.classList.add("active");
-    btn.setAttribute("aria-selected", "true");
+  // === Show Message Modal ===
+  function showMessage(title, message, type = "success") {
+    const modal = document.getElementById("messageModal");
+    const titleElement = document.getElementById("messageTitle");
+    const textElement  = document.getElementById("messageText");
+    if (!modal || !titleElement || !textElement) return;
 
-    const category = btn.dataset.category;
-    console.log(`Filtering products by category: ${category}`);
-    const query = supabaseClient.from("products").select("*").order("id", { ascending: false });
-    const { data, error } = category === "all" ? await query : await query.eq("category", category);
+    titleElement.textContent = title;
+    textElement.textContent  = message;
+    titleElement.style.color = type === "success" ? "var(--success)" : "var(--error)";
+    openModal("messageModal");
+    setTimeout(() => closeModal("messageModal"), 3000);
+  }
+
+  // === Render Products ===
+  async function renderProducts() {
+    console.log("Fetching products...");
+    const { data, error } = await supabaseClient
+      .from("products")
+      .select("*")
+      .order("id", { ascending: false });
 
     if (error) {
-      console.error("Error filtering products:", error);
-      showMessage("Error", "Failed to filter products: " + error.message, "error");
+      console.error("Error fetching products:", error);
+      showMessage("Error", "Failed to load products: " + error.message, "error");
       return;
     }
-
-    console.log("Filtered products:", data);
 
     const grid = document.getElementById("products-grid");
-    if (!grid) {
-      console.error("Products grid element not found");
-      return;
-    }
+    if (!grid) return;
     grid.innerHTML = "";
-    if (data.length === 0) {
-      grid.innerHTML = `<p>No products found for category: ${category === "all" ? "All" : category}</p>`;
+
+    if (!data || data.length === 0) {
+      grid.innerHTML = "<p>No products found. Add a product to get started!</p>";
       return;
     }
 
@@ -1505,29 +1074,16 @@ document.querySelectorAll(".category-btn").forEach(btn => {
       const card = document.createElement("div");
       card.classList.add("product-card");
       card.style.setProperty("--index", index);
-
       card.innerHTML = `
-        <div class="product-image" style="background-image: url('${prod.image_url || 'https://via.placeholder.com/150'}');"></div>
+        <div class="product-image" style="background-image: url('${prod.image_url || "https://via.placeholder.com/150"}');"></div>
         <div class="product-info">
           <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
           <p class="product-price">EGP ${prod.price || 0}</p>
           <div class="product-details">
-            <div class="detail-item">
-              <span class="detail-label">Material:</span>
-              <span class="detail-value">${prod.material || "N/A"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Category:</span>
-              <span class="detail-value">${prod.category || "N/A"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Quantity:</span>
-              <span class="detail-value">${prod.quantity || "N/A"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Deposit:</span>
-              <span class="detail-value">EGP ${prod.deposit || 0}</span>
-            </div>
+            <div class="detail-item"><span class="detail-label">Material:</span><span class="detail-value">${prod.material || "N/A"}</span></div>
+            <div class="detail-item"><span class="detail-label">Category:</span><span class="detail-value">${prod.category || "N/A"}</span></div>
+            <div class="detail-item"><span class="detail-label">Quantity:</span><span class="detail-value">${prod.quantity || "N/A"}</span></div>
+            <div class="detail-item"><span class="detail-label">Deposit:</span><span class="detail-value">EGP ${prod.deposit || 0}</span></div>
           </div>
           ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
           <div class="actions-container">
@@ -1536,147 +1092,389 @@ document.querySelectorAll(".category-btn").forEach(btn => {
           </div>
         </div>
       `;
-
       grid.appendChild(card);
     });
 
-    // Re-attach event listeners for edit and delete buttons
-    document.querySelectorAll(".edit-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const productId = btn.dataset.id;
-        showMessage("Info", `Edit functionality for product ID ${productId} not implemented yet.`, "success");
-      });
-    });
-
-    document.querySelectorAll(".delete-btn").forEach(btn => {
+    // delete (edit not implemented here)
+    document.querySelectorAll(".product-card .delete-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const productId = btn.dataset.id;
-        if (confirm(`Are you sure you want to delete product ID ${productId}?`)) {
+        if (confirm(`Delete product ${productId}?`)) {
           const { error } = await supabaseClient.from("products").delete().eq("id", productId);
-          if (error) {
-            showMessage("Error", "Failed to delete product: " + error.message, "error");
-          } else {
-            showMessage("Success", "Product deleted successfully!");
-            renderProducts();
-          }
+          if (error) showMessage("Error", "Failed to delete product: " + error.message, "error");
+          else { showMessage("Success", "Product deleted successfully!"); renderProducts(); }
         }
       });
     });
-  });
-});
-
-// === Search Products ===
-document.getElementById("productSearch").addEventListener("input", async e => {
-  const searchTerm = e.target.value.trim().toLowerCase();
-  console.log(`Searching products with term: ${searchTerm}`);
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .ilike("name", `%${searchTerm}%`)
-    .order("id", { ascending: false });
-
-  if (error) {
-    console.error("Error searching products:", error);
-    showMessage("Error", "Failed to search products: " + error.message, "error");
-    return;
   }
 
-  console.log("Search results:", data);
+  // === Render Orders (matches your orders schema) ===
+  async function renderOrders() {
+    console.log("Fetching orders...");
+    // الترتيب حسب createdAt لأن جدولك مفيهوش عمود id
+    const { data, error } = await supabaseClient
+      .from("orders")
+      .select("*")
+      .order("createdAt", { ascending: false });
 
-  const grid = document.getElementById("products-grid");
-  if (!grid) {
-    console.error("Products grid element not found");
-    return;
-  }
-  grid.innerHTML = "";
-  if (data.length === 0) {
-    grid.innerHTML = "<p>No products found matching your search.</p>";
-    return;
-  }
+    if (error) {
+      console.error("Error fetching orders:", error);
+      showMessage("Error", "Failed to load orders: " + (error.message || ""), "error");
+      return;
+    }
 
-  data.forEach((prod, index) => {
-    const card = document.createElement("div");
-    card.classList.add("product-card");
-    card.style.setProperty("--index", index);
+    const grid = document.getElementById("orders-grid");
+    if (!grid) return;
+    grid.innerHTML = "";
 
-    card.innerHTML = `
-      <div class="product-image" style="background-image: url('${prod.image_url || 'https://via.placeholder.com/150'}');"></div>
-      <div class="product-info">
-        <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
-        <p class="product-price">EGP ${prod.price || 0}</p>
-        <div class="product-details">
-          <div class="detail-item">
-            <span class="detail-label">Material:</span>
-            <span class="detail-value">${prod.material || "N/A"}</span>
+    if (!data || data.length === 0) {
+      grid.innerHTML = "<p>No orders found. Add an order to get started!</p>";
+      return;
+    }
+
+    data.forEach((order, index) => {
+      // customDetails هنخزن فيها JSON (customer, phone, instagram, customOrder)
+      let details = {};
+      try { details = order.customDetails ? JSON.parse(order.customDetails) : {}; } catch { details = {}; }
+
+      const statusClass = {
+        progress: "status-progress",
+        delivering: "status-delivering",
+        delivered: "status-delivered",
+        deposit: "status-deposit"
+      }[order.status] || "status-deposit";
+
+      const card = document.createElement("div");
+      card.classList.add("order-card");
+      card.style.setProperty("--index", index);
+      card.innerHTML = `
+        <div class="order-image" style="background-image: url('https://via.placeholder.com/150');"></div>
+        <div class="order-info">
+          <h3 class="order-id">Order #${order.rderid ?? index + 1}</h3>
+          <div class="order-details">
+            <div class="order-item"><span class="order-label">Customer:</span><span class="order-value">${details.customer || "N/A"}</span></div>
+            <div class="order-item"><span class="order-label">Phone:</span><span class="order-value">${details.phone || "N/A"}</span></div>
+            <div class="order-item"><span class="order-label">Instagram:</span><span class="order-value">${details.instagram || "N/A"}</span></div>
+            <div class="order-item"><span class="order-label">Products:</span><span class="order-value">${Array.isArray(order.products) ? order.products.join(", ") : (order.products || "N/A")}</span></div>
+            <div class="order-item"><span class="order-label">Deposit:</span><span class="order-value">EGP ${order.deposit || 0}</span></div>
           </div>
-          <div class="detail-item">
-            <span class="detail-label">Category:</span>
-            <span class="detail-value">${prod.category || "N/A"}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Quantity:</span>
-            <span class="detail-value">${prod.quantity || "N/A"}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Deposit:</span>
-            <span class="detail-value">EGP ${prod.deposit || 0}</span>
+          <span class="${statusClass}">${order.status || "deposit"}</span>
+          ${details.customOrder ? `<div class="custom-details">${details.customOrder}</div>` : ""}
+          <div class="actions-container">
+            <button class="edit-btn" data-id="${order.rderid}"><i class="fas fa-edit"></i> Edit</button>
+            <button class="delete-btn" data-id="${order.rderid}"><i class="fas fa-trash"></i> Delete</button>
           </div>
         </div>
-        ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
-        <div class="actions-container">
-          <button class="edit-btn" data-id="${prod.id}"><i class="fas fa-edit"></i> Edit</button>
-          <button class="delete-btn" data-id="${prod.id}"><i class="fas fa-trash"></i> Delete</button>
-        </div>
-      </div>
-    `;
-
-    grid.appendChild(card);
-  });
-
-  // Re-attach event listeners for edit and delete buttons
-  document.querySelectorAll(".edit-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const productId = btn.dataset.id;
-      showMessage("Info", `Edit functionality for product ID ${productId} not implemented yet.`, "success");
+      `;
+      grid.appendChild(card);
     });
-  });
 
-  document.querySelectorAll(".delete-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const productId = btn.dataset.id;
-      if (confirm(`Are you sure you want to delete product ID ${productId}?`)) {
-        const { error } = await supabaseClient.from("products").delete().eq("id", productId);
-        if (error) {
-          showMessage("Error", "Failed to delete product: " + error.message, "error");
-        } else {
-          showMessage("Success", "Product deleted successfully!");
-          renderProducts();
+    // delete using primary key rderid
+    document.querySelectorAll(".order-card .delete-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        if (!id) return;
+        if (confirm(`Delete order #${id}?`)) {
+          const { error } = await supabaseClient.from("orders").delete().eq("rderid", id);
+          if (error) showMessage("Error", "Failed to delete order: " + error.message, "error");
+          else { showMessage("Success", "Order deleted successfully!"); renderOrders(); }
         }
+      });
+    });
+  }
+
+  // === Add Product Form ===
+  const productFormEl = document.getElementById("productForm");
+  if (productFormEl) {
+    productFormEl.addEventListener("submit", async e => {
+      e.preventDefault();
+      const form = e.target;
+      const saveBtn = form.querySelector(".save-btn");
+      saveBtn.disabled = true; saveBtn.classList.add("loading");
+
+      const name       = document.getElementById("productName").value.trim();
+      const price      = parseFloat(document.getElementById("productPrice").value);
+      const material   = document.getElementById("productMaterial").value;
+      const category   = document.getElementById("productCategory").value;
+      const quantity   = document.getElementById("productQuantity").value.trim();
+      const deposit    = parseFloat(document.getElementById("productDeposit").value);
+      const customTxt  = document.getElementById("customDetails")?.value.trim() || "";
+      const imageUrl   = document.getElementById("productImageUrl").value.trim();
+      const notes      = document.getElementById("productNotes").value.trim();
+
+      let hasError = false;
+      if (!name) { document.getElementById("productNameError").style.display = "block"; hasError = true; }
+      if (!price || price < 0) { document.getElementById("productPriceError").style.display = "block"; hasError = true; }
+      if (!material) { document.getElementById("productMaterialError").style.display = "block"; hasError = true; }
+      if (!category) { document.getElementById("productCategoryError").style.display = "block"; hasError = true; }
+      if (!quantity) { document.getElementById("productQuantityError").style.display = "block"; hasError = true; }
+      if (!deposit || deposit < 0) { document.getElementById("productDepositError").style.display = "block"; hasError = true; }
+      if (category === "custom" && !customTxt) { document.getElementById("customDetailsError").style.display = "block"; hasError = true; }
+
+      if (hasError) { saveBtn.disabled = false; saveBtn.classList.remove("loading"); return; }
+
+      const productData = {
+        name, price, material, category, quantity, deposit,
+        custom_details: customTxt || null,
+        image_url: imageUrl || null,
+        notes: notes || null
+      };
+
+      const { error } = await supabaseClient.from("products").insert([productData]);
+      saveBtn.disabled = false; saveBtn.classList.remove("loading");
+
+      if (error) showMessage("Error", "Failed to add product: " + error.message, "error");
+      else {
+        showMessage("Success", "Product added successfully!");
+        closeModal("productModal");
+        form.reset();
+        renderProducts();
+        populateOrderProducts();
       }
     });
+  }
+
+  // === Add Order Form (UPDATED to match your HTML + schema) ===
+  const orderFormEl = document.getElementById("orderForm");
+  if (orderFormEl) {
+    orderFormEl.addEventListener("submit", async e => {
+      e.preventDefault();
+      const form = e.target;
+      const saveBtn = form.querySelector(".save-btn");
+      saveBtn.disabled = true; saveBtn.classList.add("loading");
+
+      const customer   = document.getElementById("orderCustomer").value.trim();
+      const phone      = document.getElementById("orderPhone").value.trim();
+      const instagram  = document.getElementById("orderInstagram").value.trim();
+      const products   = Array.from(document.getElementById("orderProducts").selectedOptions).map(o => o.value);
+      // ملاحظة: في HTML بتاعك منطقة تفاصيل الكستم عندها id="customDetails" جوا المودال و الـ textarea id="customOrder"
+      const customOrder = document.querySelector("#orderModal #customOrder")?.value.trim() || "";
+      const deposit     = parseFloat(document.getElementById("Deposit").value);
+      const status      = document.getElementById("Status").value;
+
+      let hasError = false;
+      if (!customer) { document.getElementById("orderCustomerError").style.display = "block"; hasError = true; }
+      if (!phone) { document.getElementById("orderPhoneError").style.display = "block"; hasError = true; }
+      if (!products.length) { document.getElementById("orderProductsError").style.display = "block"; hasError = true; }
+      if (!deposit || deposit < 0) { document.getElementById("DepositError").style.display = "block"; hasError = true; }
+      if (!status) { document.getElementById("StatusError").style.display = "block"; hasError = true; }
+
+      if (hasError) { saveBtn.disabled = false; saveBtn.classList.remove("loading"); return; }
+
+      // نخزّن بيانات العميل داخل customDetails كـ JSON (علشان جدولك مفيهوش أعمدة customer/phone/instagram)
+      const customDetailsJSON = JSON.stringify({ customer, phone, instagram, customOrder });
+
+      const orderRow = {
+        products: products.join(", "), // نخزنها نص مبسّط علشان نتفادى مشاكل uuid
+        customDetails: customDetailsJSON,
+        deposit,
+        status,
+        createdAt: new Date().toISOString()
+      };
+
+      const { error } = await supabaseClient.from("orders").insert([orderRow]);
+      saveBtn.disabled = false; saveBtn.classList.remove("loading");
+
+      if (error) showMessage("Error", "Failed to add order: " + error.message, "error");
+      else {
+        showMessage("Success", "Order added successfully!");
+        closeModal("orderModal");
+        form.reset();
+        renderOrders();
+      }
+    });
+  }
+
+  // === Populate Order Products Dropdown ===
+  async function populateOrderProducts() {
+    const { data, error } = await supabaseClient.from("products").select("id, name").order("name");
+    if (error) {
+      console.error("Error fetching products for dropdown:", error);
+      showMessage("Error", "Failed to load products for dropdown: " + error.message, "error");
+      return;
+    }
+    const select = document.getElementById("orderProducts");
+    if (!select) return;
+    select.innerHTML = "";
+    (data || []).forEach(p => {
+      const opt = document.createElement("option");
+      // نخزن الاسم كقيمة مباشرة (علشان نتجنّب uuid نهائيًا)
+      opt.value = p.name;
+      opt.textContent = p.name;
+      select.appendChild(opt);
+    });
+  }
+
+  // === Toggle Custom Details (scoped to each form to avoid duplicate IDs) ===
+  const productCategoryEl = document.getElementById("productCategory");
+  if (productCategoryEl) {
+    productCategoryEl.addEventListener("change", e => {
+      const group = document.getElementById("customDetailsGroup");
+      if (group) group.style.display = e.target.value === "custom" ? "block" : "none";
+    });
+  }
+
+  const orderProductsEl = document.getElementById("orderProducts");
+  if (orderProductsEl) {
+    orderProductsEl.addEventListener("change", () => {
+      // مهم: استخدم سكوب المودال علشان عندك عنصر تاني اسمه customDetails في صفحة تانية
+      const group = document.querySelector("#orderModal #customDetails");
+      if (!group) return;
+      const selected = Array.from(orderProductsEl.selectedOptions).map(o => o.value);
+      group.style.display = selected.includes("custom") ? "block" : "none";
+    });
+  }
+
+  // === Clear Error Messages on Input ===
+  document.querySelectorAll(".form-group input, .form-group select, .form-group textarea").forEach(input => {
+    input.addEventListener("input", () => {
+      const err = document.getElementById(`${input.id}Error`);
+      if (err) err.style.display = "none";
+    });
   });
-});
 
-// === Add Event Listeners for Add Buttons ===
-document.getElementById("add-product-btn").addEventListener("click", () => {
-  console.log("Add Product button clicked");
-  openModal("productModal");
-});
+  // === Navigation Handling ===
+  document.querySelectorAll("nav ul li a").forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      const targetPage = link.getAttribute("href").substring(1);
+      document.querySelectorAll(".page-content").forEach(p => p.classList.remove("active"));
+      const pageEl = document.getElementById(`${targetPage}-page`);
+      if (pageEl) pageEl.classList.add("active");
+      document.querySelectorAll("nav ul li a").forEach(a => a.classList.remove("active"));
+      link.classList.add("active");
+    });
+  });
 
-document.getElementById("add-order-btn").addEventListener("click", () => {
-  console.log("Add Order button clicked");
-  openModal("orderModal");
-});
+  // === Category Filter ===
+  document.querySelectorAll(".category-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      document.querySelectorAll(".category-btn").forEach(b => {
+        b.classList.remove("active");
+        b.setAttribute("aria-selected", "false");
+      });
+      btn.classList.add("active");
+      btn.setAttribute("aria-selected", "true");
 
-// === Start App ===
+      const category = btn.dataset.category;
+      const base = supabaseClient.from("products").select("*").order("id", { ascending: false });
+      const { data, error } = category === "all" ? await base : await base.eq("category", category);
+      if (error) { showMessage("Error", "Failed to filter products: " + error.message, "error"); return; }
+
+      const grid = document.getElementById("products-grid");
+      if (!grid) return;
+      grid.innerHTML = data.length ? "" : `<p>No products found for category: ${category === "all" ? "All" : category}</p>`;
+
+      data.forEach((prod, index) => {
+        const card = document.createElement("div");
+        card.classList.add("product-card");
+        card.style.setProperty("--index", index);
+        card.innerHTML = `
+          <div class="product-image" style="background-image: url('${prod.image_url || "https://via.placeholder.com/150"}');"></div>
+          <div class="product-info">
+            <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
+            <p class="product-price">EGP ${prod.price || 0}</p>
+            <div class="product-details">
+              <div class="detail-item"><span class="detail-label">Material:</span><span class="detail-value">${prod.material || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Category:</span><span class="detail-value">${prod.category || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Quantity:</span><span class="detail-value">${prod.quantity || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Deposit:</span><span class="detail-value">EGP ${prod.deposit || 0}</span></div>
+            </div>
+            ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
+            <div class="actions-container">
+              <button class="edit-btn" data-id="${prod.id}"><i class="fas fa-edit"></i> Edit</button>
+              <button class="delete-btn" data-id="${prod.id}"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      document.querySelectorAll(".product-card .delete-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const productId = btn.dataset.id;
+          if (confirm(`Delete product ${productId}?`)) {
+            const { error } = await supabaseClient.from("products").delete().eq("id", productId);
+            if (error) showMessage("Error", "Failed to delete product: " + error.message, "error");
+            else { showMessage("Success", "Product deleted successfully!"); renderProducts(); }
+          }
+        });
+      });
+    });
+  });
+
+  // === Search Products ===
+  const productSearchEl = document.getElementById("productSearch");
+  if (productSearchEl) {
+    productSearchEl.addEventListener("input", async e => {
+      const term = e.target.value.trim().toLowerCase();
+      const { data, error } = await supabaseClient
+        .from("products")
+        .select("*")
+        .ilike("name", `%${term}%`)
+        .order("id", { ascending: false });
+
+      if (error) { showMessage("Error", "Failed to search products: " + error.message, "error"); return; }
+
+      const grid = document.getElementById("products-grid");
+      if (!grid) return;
+      grid.innerHTML = data.length ? "" : "<p>No products found matching your search.</p>";
+
+      data.forEach((prod, index) => {
+        const card = document.createElement("div");
+        card.classList.add("product-card");
+        card.style.setProperty("--index", index);
+        card.innerHTML = `
+          <div class="product-image" style="background-image: url('${prod.image_url || "https://via.placeholder.com/150"}');"></div>
+          <div class="product-info">
+            <h3 class="product-name">${prod.name || "Unnamed Product"}</h3>
+            <p class="product-price">EGP ${prod.price || 0}</p>
+            <div class="product-details">
+              <div class="detail-item"><span class="detail-label">Material:</span><span class="detail-value">${prod.material || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Category:</span><span class="detail-value">${prod.category || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Quantity:</span><span class="detail-value">${prod.quantity || "N/A"}</span></div>
+              <div class="detail-item"><span class="detail-label">Deposit:</span><span class="detail-value">EGP ${prod.deposit || 0}</span></div>
+            </div>
+            ${prod.custom_details ? `<div class="custom-details">${prod.custom_details}</div>` : ""}
+            <div class="actions-container">
+              <button class="edit-btn" data-id="${prod.id}"><i class="fas fa-edit"></i> Edit</button>
+              <button class="delete-btn" data-id="${prod.id}"><i class="fas fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      document.querySelectorAll(".product-card .delete-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const productId = btn.dataset.id;
+          if (confirm(`Delete product ${productId}?`)) {
+            const { error } = await supabaseClient.from("products").delete().eq("id", productId);
+            if (error) showMessage("Error", "Failed to delete product: " + error.message, "error");
+            else { showMessage("Success", "Product deleted successfully!"); renderProducts(); }
+          }
+        });
+      });
+    });
+  }
+
+  // === Add Buttons ===
+  const addProductBtn = document.getElementById("add-product-btn");
+  if (addProductBtn) addProductBtn.addEventListener("click", () => openModal("productModal"));
+  const addOrderBtn = document.getElementById("add-order-btn");
+  if (addOrderBtn) addOrderBtn.addEventListener("click", () => openModal("orderModal"));
+
+  // === Start App ===
   console.log("App started");
   renderProducts();
   renderOrders();
   populateOrderProducts();
 });
-    </script>
+</script>
+
 </body>
 </html>
+
 
 
 
