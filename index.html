@@ -991,10 +991,19 @@ textarea:focus {
     </div>
     <script>
         
-// Supabase Configuration
-const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+// === Supabase Configuration ===
+document.addEventListener("DOMContentLoaded", () => {
+  // Check if Supabase library is loaded
+  if (typeof supabase === "undefined") {
+    console.error("Supabase library not loaded. Ensure the Supabase script is included and loaded correctly.");
+    showMessage("Error", "Failed to initialize Supabase. Please check the console for details.", "error");
+    return;
+  }
+
+  const supabaseUrl = "https://kvkhojlmqwfsdcuusyqp.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2a2hvamxtcXdmc2RjdXVzeXFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxMjI1MzksImV4cCI6MjA3MTY5ODUzOX0.s7FvoHuk32q1xC68vsFdXrWZz0EdDHMnTw3ivmFjsqA";
+  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+  console.log("Supabase client initialized");
 
 // === Utility: Open/Close Modal ===
 function openModal(modalId) {
@@ -1034,7 +1043,7 @@ window.addEventListener("click", e => {
 // === Render Products ===
 async function renderProducts() {
   console.log("Fetching products...");
-  const { data, error } = await supabase.from("products").select("*").order("id", { ascending: false });
+  const { data, error } = await supabaseClient.from("products").select("*").order("id", { ascending: false });
 
   if (error) {
     console.error("Error fetching products:", error);
@@ -1045,6 +1054,10 @@ async function renderProducts() {
   console.log("Products fetched:", data);
 
   const grid = document.getElementById("products-grid");
+  if (!grid) {
+    console.error("Products grid element not found");
+    return;
+  }
   grid.innerHTML = "";
 
   if (data.length === 0) {
@@ -1103,7 +1116,7 @@ async function renderProducts() {
     btn.addEventListener("click", async () => {
       const productId = btn.dataset.id;
       if (confirm(`Are you sure you want to delete product ID ${productId}?`)) {
-        const { error } = await supabase.from("products").delete().eq("id", productId);
+        const { error } = await supabaseClient.from("products").delete().eq("id", productId);
         if (error) {
           showMessage("Error", "Failed to delete product: " + error.message, "error");
         } else {
@@ -1118,7 +1131,7 @@ async function renderProducts() {
 // === Render Orders ===
 async function renderOrders() {
   console.log("Fetching orders...");
-  const { data, error } = await supabase.from("orders").select("*").order("id", { ascending: false });
+  const { data, error } = await supabaseClient.from("orders").select("*").order("id", { ascending: false });
 
   if (error) {
     console.error("Error fetching orders:", error);
@@ -1129,6 +1142,10 @@ async function renderOrders() {
   console.log("Orders fetched:", data);
 
   const grid = document.getElementById("orders-grid");
+  if (!grid) {
+    console.error("Orders grid element not found");
+    return;
+  }
   grid.innerHTML = "";
 
   if (data.length === 0) {
@@ -1194,7 +1211,7 @@ async function renderOrders() {
     btn.addEventListener("click", async () => {
       const orderId = btn.dataset.id;
       if (confirm(`Are you sure you want to delete order ID ${orderId}?`)) {
-        const { error } = await supabase.from("orders").delete().eq("id", orderId);
+        const { error } = await supabaseClient.from("orders").delete().eq("id", orderId);
         if (error) {
           showMessage("Error", "Failed to delete order: " + error.message, "error");
         } else {
@@ -1288,7 +1305,7 @@ document.getElementById("productForm").addEventListener("submit", async e => {
     notes: notes || null
   };
 
-  const { error } = await supabase.from("products").insert([productData]);
+  const { error } = await supabaseClient.from("products").insert([productData]);
 
   saveBtn.disabled = false;
   saveBtn.classList.remove("loading");
@@ -1364,7 +1381,7 @@ document.getElementById("orderForm").addEventListener("submit", async e => {
     created_at: new Date().toISOString()
   };
 
-  const { error } = await supabase.from("orders").insert([orderData]);
+  const { error } = await supabaseClient.from("orders").insert([orderData]);
 
   saveBtn.disabled = false;
   saveBtn.classList.remove("loading");
@@ -1382,7 +1399,7 @@ document.getElementById("orderForm").addEventListener("submit", async e => {
 // === Populate Order Products Dropdown ===
 async function populateOrderProducts() {
   console.log("Populating order products dropdown...");
-  const { data, error } = await supabase.from("products").select("id, name");
+  const { data, error } = await supabaseClient.from("products").select("id, name");
   if (error) {
     console.error("Error fetching products for dropdown:", error);
     showMessage("Error", "Failed to load products for dropdown: " + error.message, "error");
@@ -1392,6 +1409,10 @@ async function populateOrderProducts() {
   console.log("Products for dropdown:", data);
 
   const select = document.getElementById("orderProducts");
+  if (!select) {
+    console.error("Order products select element not found");
+    return;
+  }
   select.innerHTML = "";
   data.forEach(product => {
     const option = document.createElement("option");
@@ -1404,13 +1425,17 @@ async function populateOrderProducts() {
 // === Toggle Custom Details Field ===
 document.getElementById("productCategory").addEventListener("change", e => {
   const customDetailsGroup = document.getElementById("customDetailsGroup");
-  customDetailsGroup.style.display = e.target.value === "custom" ? "block" : "none";
+  if (customDetailsGroup) {
+    customDetailsGroup.style.display = e.target.value === "custom" ? "block" : "none";
+  }
 });
 
 document.getElementById("orderProducts").addEventListener("change", () => {
   const customDetailsGroup = document.getElementById("customOrderDetailsGroup");
-  const selectedProducts = Array.from(document.getElementById("orderProducts").selectedOptions).map(opt => opt.value);
-  customDetailsGroup.style.display = selectedProducts.includes("custom") ? "block" : "none";
+  if (customDetailsGroup) {
+    const selectedProducts = Array.from(document.getElementById("orderProducts").selectedOptions).map(opt => opt.value);
+    customDetailsGroup.style.display = selectedProducts.includes("custom") ? "block" : "none";
+  }
 });
 
 // === Clear Error Messages on Input ===
@@ -1429,7 +1454,12 @@ document.querySelectorAll("nav ul li a").forEach(link => {
     document.querySelectorAll(".page-content").forEach(page => {
       page.classList.remove("active");
     });
-    document.getElementById(`${targetPage}-page`).classList.add("active");
+    const targetPageElement = document.getElementById(`${targetPage}-page`);
+    if (targetPageElement) {
+      targetPageElement.classList.add("active");
+    } else {
+      console.error(`Page with ID ${targetPage}-page not found`);
+    }
     document.querySelectorAll("nav ul li a").forEach(navLink => {
       navLink.classList.remove("active");
     });
@@ -1449,11 +1479,8 @@ document.querySelectorAll(".category-btn").forEach(btn => {
 
     const category = btn.dataset.category;
     console.log(`Filtering products by category: ${category}`);
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order("id", { ascending: false })
-      .eq(category === "all" ? "id" : "category", category === "all" ? "*" : category);
+    const query = supabaseClient.from("products").select("*").order("id", { ascending: false });
+    const { data, error } = category === "all" ? await query : await query.eq("category", category);
 
     if (error) {
       console.error("Error filtering products:", error);
@@ -1464,6 +1491,10 @@ document.querySelectorAll(".category-btn").forEach(btn => {
     console.log("Filtered products:", data);
 
     const grid = document.getElementById("products-grid");
+    if (!grid) {
+      console.error("Products grid element not found");
+      return;
+    }
     grid.innerHTML = "";
     if (data.length === 0) {
       grid.innerHTML = `<p>No products found for category: ${category === "all" ? "All" : category}</p>`;
@@ -1521,7 +1552,7 @@ document.querySelectorAll(".category-btn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const productId = btn.dataset.id;
         if (confirm(`Are you sure you want to delete product ID ${productId}?`)) {
-          const { error } = await supabase.from("products").delete().eq("id", productId);
+          const { error } = await supabaseClient.from("products").delete().eq("id", productId);
           if (error) {
             showMessage("Error", "Failed to delete product: " + error.message, "error");
           } else {
@@ -1538,7 +1569,7 @@ document.querySelectorAll(".category-btn").forEach(btn => {
 document.getElementById("productSearch").addEventListener("input", async e => {
   const searchTerm = e.target.value.trim().toLowerCase();
   console.log(`Searching products with term: ${searchTerm}`);
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from("products")
     .select("*")
     .ilike("name", `%${searchTerm}%`)
@@ -1553,6 +1584,10 @@ document.getElementById("productSearch").addEventListener("input", async e => {
   console.log("Search results:", data);
 
   const grid = document.getElementById("products-grid");
+  if (!grid) {
+    console.error("Products grid element not found");
+    return;
+  }
   grid.innerHTML = "";
   if (data.length === 0) {
     grid.innerHTML = "<p>No products found matching your search.</p>";
@@ -1610,7 +1645,7 @@ document.getElementById("productSearch").addEventListener("input", async e => {
     btn.addEventListener("click", async () => {
       const productId = btn.dataset.id;
       if (confirm(`Are you sure you want to delete product ID ${productId}?`)) {
-        const { error } = await supabase.from("products").delete().eq("id", productId);
+        const { error } = await supabaseClient.from("products").delete().eq("id", productId);
         if (error) {
           showMessage("Error", "Failed to delete product: " + error.message, "error");
         } else {
@@ -1634,16 +1669,15 @@ document.getElementById("add-order-btn").addEventListener("click", () => {
 });
 
 // === Start App ===
-document.addEventListener("DOMContentLoaded", () => {
   console.log("App started");
   renderProducts();
   renderOrders();
   populateOrderProducts();
 });
-
     </script>
 </body>
 </html>
+
 
 
 
