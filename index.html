@@ -1078,6 +1078,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!error) renderProducts();
           }
         }));
+        document.querySelectorAll(".edit-btn").forEach(btn => btn.addEventListener("click", () => openModal("productModal")));
       });
     }
   }
@@ -1121,6 +1122,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!error) renderOrders();
           }
         }));
+        document.querySelectorAll(".edit-btn").forEach(btn => btn.addEventListener("click", () => openModal("orderModal")));
       });
     }
   }
@@ -1140,15 +1142,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const quantity = document.getElementById("productQuantity").value.trim();
       const deposit = parseFloat(document.getElementById("productDeposit").value);
       const customDetails = document.getElementById("customDetails")?.value.trim() || "";
-      const imageUrl = document.getElementById("productImageUrl").value.trim();
+      const imageFile = document.getElementById("productImageFile").files[0];
+      const imageUrl = document.getElementById("productImageUrl").value.trim() || "";
       const notes = document.getElementById("productNotes").value.trim();
+      let imageUploadUrl = imageUrl;
+
+      // رفع الصورة إذا كانت ملف
+      if (imageFile) {
+        const { data, error } = await supabaseClient.storage.from("product-images").upload(`${Date.now()}-${imageFile.name}`, imageFile);
+        if (!error && data) imageUploadUrl = `https://kvkhojlmqwfsdcuusyqp.supabase.co/storage/v1/object/public/product-images/${data.path}`;
+      }
 
       if (!name || !price || price < 0 || !material || !category || !quantity || !deposit || (category === "custom" && !customDetails)) {
         saveBtn.disabled = false; saveBtn.classList.remove("loading");
         return;
       }
 
-      const productData = { name, price, material, category, quantity, deposit, custom_details: customDetails || null, image_url: imageUrl || null, notes: notes || null };
+      const productData = { name, price, material, category, quantity, deposit, custom_details: customDetails || null, image_url: imageUploadUrl || null, notes: notes || null };
       const { error } = await supabaseClient.from("products").insert([productData]);
       saveBtn.disabled = false; saveBtn.classList.remove("loading");
 
@@ -1229,20 +1239,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // تحديث البيانات عند التحميل
-  const addProductBtn = document.getElementById("add-product-btn");
-  if (addProductBtn) addProductBtn.addEventListener("click", () => openModal("productModal"));
-  const addOrderBtn = document.getElementById("add-order-btn");
-  if (addOrderBtn) addOrderBtn.addEventListener("click", () => openModal("orderModal"));
+  // التنقل بين الصفحات
+  document.querySelectorAll("nav ul li a").forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      const targetPage = link.getAttribute("href").substring(1);
+      document.querySelectorAll(".page-content").forEach(p => p.classList.remove("active"));
+      const pageEl = document.getElementById(`${targetPage}-page`);
+      if (pageEl) pageEl.classList.add("active");
+      document.querySelectorAll("nav ul li a").forEach(a => a.classList.remove("active"));
+      link.classList.add("active");
+    });
+  });
 
+  // فلترة الفئات
+  document.querySelectorAll(".category-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      document.querySelectorAll(".category-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const category = btn.dataset.category;
+      const { data, error } = await supabaseClient.from("products").select("*").eq("category", category).order("id", { ascending: false });
+      const grid = document.getElementById("products-grid");
+      if (grid) grid.innerHTML = error ? "<p>Failed to filter.</p>" : (data.length ? "" : "<p>No products found.</p>");
+      if (data) renderProducts();
+    });
+  });
+
+  // زرار الإضافة
+  document.getElementById("add-product-btn")?.addEventListener("click", () => openModal("productModal"));
+  document.getElementById("add-order-btn")?.addEventListener("click", () => openModal("orderModal"));
+
+  // بدء التطبيق
   renderProducts();
   renderOrders();
   populateOrderProducts();
 });
 </script>
-
 </body>
 </html>
+
 
 
 
