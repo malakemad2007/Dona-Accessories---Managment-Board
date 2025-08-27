@@ -1235,31 +1235,28 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Add Order Form (UPDATED to match your HTML + schema) ===
-  const orderFormEl = document.getElementById("orderForm");
-  if (orderFormEl) {
-    orderFormEl.addEventListener("submit", async e => {
-      e.preventDefault();
-      const form = e.target;
-      const saveBtn = form.querySelector(".save-btn");
-      saveBtn.disabled = true; saveBtn.classList.add("loading");
 
-      const customer   = document.getElementById("orderCustomer").value.trim();
-      const phone      = document.getElementById("orderPhone").value.trim();
-      const instagram  = document.getElementById("orderInstagram").value.trim();
-      const products   = Array.from(document.getElementById("orderProducts").selectedOptions).map(o => o.value);
-      // ملاحظة: في HTML بتاعك منطقة تفاصيل الكستم عندها id="customDetails" جوا المودال و الـ textarea id="customOrder"
-      const customOrder = document.querySelector("#orderModal #customOrder")?.value.trim() || "";
-      const deposit     = parseFloat(document.getElementById("Deposit").value);
-      const status      = document.getElementById("Status").value;
+const orderRow = {
+  products: products.join(", "), // نص مفصول بفواصل
+  customDetails: customDetailsJSON, // JSON لحقول العميل
+  deposit: deposit || 0, // لو فيه null يبقى 0
+  status: status || "deposit", // قيمة افتراضية لو status فاضي
+  createdAt: new Date().toISOString() // التاريخ صح
+};
+console.log("Order data to insert:", orderRow); // لوحة تحكم للتحقق
+const { error } = await supabaseClient.from("orders").insert([orderRow]);
+saveBtn.disabled = false; saveBtn.classList.remove("loading");
 
-      let hasError = false;
-      if (!customer) { document.getElementById("orderCustomerError").style.display = "block"; hasError = true; }
-      if (!phone) { document.getElementById("orderPhoneError").style.display = "block"; hasError = true; }
-      if (!products.length) { document.getElementById("orderProductsError").style.display = "block"; hasError = true; }
-      if (!deposit || deposit < 0) { document.getElementById("DepositError").style.display = "block"; hasError = true; }
-      if (!status) { document.getElementById("StatusError").style.display = "block"; hasError = true; }
+if (error) {
+  console.error("Insert error:", error); // طباعة الخطأ الكامل
+  showMessage("Error", "Failed to add order: " + error.message, "error");
+} else {
+  showMessage("Success", "Order added successfully!");
+  closeModal("orderModal");
+  form.reset();
+  renderOrders();
+}
 
-      if (hasError) { saveBtn.disabled = false; saveBtn.classList.remove("loading"); return; }
 
       // نخزّن بيانات العميل داخل customDetails كـ JSON (علشان جدولك مفيهوش أعمدة customer/phone/instagram)
       const customDetailsJSON = JSON.stringify({ customer, phone, instagram, customOrder });
@@ -1474,6 +1471,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
